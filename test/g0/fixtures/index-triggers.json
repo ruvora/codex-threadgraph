@@ -33,6 +33,18 @@
       "expected": { "decision": "deny", "code": "TRIGGER_NOT_AUTHORIZED", "nextAction": null }
     },
     {
+      "id": "trigger-goal-query-no-revision",
+      "description": "A Goal Query without a published revision reports the allowed initial-open action but does not index itself.",
+      "input": { "trigger": "goal_query", "projectId": "prj_alpha", "hasPublishedRevision": false },
+      "expected": { "decision": "deny", "code": "TRIGGER_NOT_AUTHORIZED", "nextAction": "open_project_graph" }
+    },
+    {
+      "id": "trigger-goal-query-stale-revision",
+      "description": "A Goal Query over a stale revision offers explicit refresh but does not refresh itself.",
+      "input": { "trigger": "goal_query", "projectId": "prj_alpha", "hasPublishedRevision": true, "revisionStale": true },
+      "expected": { "decision": "deny", "code": "TRIGGER_NOT_AUTHORIZED", "nextAction": "refresh_project_graph" }
+    },
+    {
       "id": "trigger-search",
       "description": "Search cannot start indexing.",
       "input": { "trigger": "search", "projectId": "prj_alpha", "hasPublishedRevision": true },

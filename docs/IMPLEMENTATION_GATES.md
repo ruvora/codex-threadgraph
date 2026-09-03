@@ -4,7 +4,7 @@ Implementation proceeds only after the preceding gate has durable failure-path t
 
 ## G0 — Contract fixtures
 
-Status: red. The fixture corpus and its structural validator exist; the named core capabilities remain intentionally unimplemented until G1 and G2.
+Status: complete. The red baseline was recorded before implementation, and the contract kernel now satisfies every seed fixture. G1 and G2 remain open for immutable graph revisions and the native scoped-source adapter.
 
 - malformed scope and out-of-scope reference rejection;
 - indexing starts only for first project-graph open and explicit refresh;

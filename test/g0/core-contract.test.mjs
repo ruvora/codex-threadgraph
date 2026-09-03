@@ -11,20 +11,23 @@ async function requireCapability(capability) {
     core = await import("../../src/core-contract.mjs");
   } catch (error) {
     if (error?.code === "ERR_MODULE_NOT_FOUND") {
-      assert.fail(`[G0 RED] ${capability} is not implemented; its fixtures are ready`);
+      assert.fail(`[G0] ${capability} is missing from the contract kernel`);
     }
     throw error;
   }
-  assert.equal(typeof core[capability], "function", `[G0 RED] ${capability} is not implemented; its fixtures are ready`);
+  assert.equal(typeof core[capability], "function", `[G0] ${capability} is missing from the contract kernel`);
   return core[capability];
 }
 
 for (const document of corpus) {
-  test(`G0 RED ${document.capability}: ${document.cases.length} contract fixtures`, async () => {
+  test(`G0 ${document.capability}: ${document.cases.length} contract fixtures`, async () => {
     const capability = await requireCapability(document.capability);
     for (const fixture of document.cases) {
-      const actual = await capability(structuredClone(fixture.input));
+      const input = structuredClone(fixture.input);
+      const before = structuredClone(input);
+      const actual = await capability(input);
       assert.deepEqual(actual, fixture.expected, `${fixture.id}: ${fixture.description}`);
+      assert.deepEqual(input, before, `${fixture.id}: contract functions must not mutate input`);
     }
   });
 }
