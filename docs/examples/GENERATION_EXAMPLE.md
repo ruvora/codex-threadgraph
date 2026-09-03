@@ -79,21 +79,21 @@ Goal: “Continue implementing and validating authentication tests.”
 
 Example dimension vectors:
 
-| Thread | Relevance | Evidence | Continuity | Freshness | Specialization | Availability | Conflict | Missing |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| A | 0.75 | 0.90 | 0.80 | 1.00 | 0.70 | 1.00 | 0.00 | 0.00 |
-| B | 0.95 | 0.85 | 0.90 | 1.00 | 0.80 | 1.00 | 0.00 | 0.00 |
-| C | 0.45 | 0.50 | 0.30 | 1.00 | 0.30 | 1.00 | 0.20 | 0.20 |
+| Thread | Relevance | Evidence | Continuity | Freshness | Specialization | Conflict | Missing |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| A | 0.75 | 0.90 | 0.80 | 1.00 | 0.70 | 0.00 | 0.00 |
+| B | 0.95 | 0.85 | 0.90 | 1.00 | 0.80 | 0.00 | 0.00 |
+| C | 0.45 | 0.50 | 0.30 | 1.00 | 0.30 | 0.20 | 0.20 |
 
 Applying `selection-policy/1-alpha` gives:
 
 ```text
-A = 0.820
-B = 0.915
-C = 0.435
+A = 0.815
+B = 0.908
+C = 0.400
 ```
 
-B is `recommended`: it exceeds `0.65`, leads A by `0.095`, has evidence coverage above `0.60`, and has no blocking conflict. The report still shows A as a strong alternative and explains every dimension. C's proposal is visible context but does not gain authority from the score.
+B is `recommended`: it exceeds `0.65`, leads A by `0.093`, has evidence coverage above `0.60`, and has no blocking conflict. The report still shows A as a strong alternative and explains every dimension. C's proposal is visible context but does not gain authority from the score.
 
 ## Revision publication
 

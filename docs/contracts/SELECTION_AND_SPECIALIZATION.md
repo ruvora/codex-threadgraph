@@ -22,12 +22,14 @@ Active writer state, stale evidence, and unresolved conflicts do not always make
 
 - goal relevance;
 - explicit decision and constraint coverage;
-- evidence freshness at the query cutoff;
-- project and lineage continuity;
+- evidence and activity freshness at the query cutoff;
+- lineage and explicit-reference continuity relative to the query anchor;
 - demonstrated artifact or validation history;
 - unresolved conflict penalty;
 - missing-context penalty;
 - user-confirmed specialization match.
+
+Project membership is an eligibility gate in the first implementation, not a score. Native accessibility and active-writer state determine navigation or reuse next actions but do not lower a thread's context-quality score.
 
 The product must expose dimensions and evidence rather than only one opaque score.
 

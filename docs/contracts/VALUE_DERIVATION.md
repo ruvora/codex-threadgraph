@@ -24,6 +24,8 @@ Activity freshness is deterministic:
 activityFreshness = 2 ^ (-ageDays / 30)
 ```
 
+`ageDays` is measured from the most recent substantive completed Turn at the frozen query cutoff. Title edits, dashboard views, indexing observations, and failed empty Turns do not reset activity age.
+
 Evidence recency for ordinary topic and result evidence uses a 90-day half-life:
 
 ```text
@@ -106,15 +108,14 @@ The suggestion records supporting evidence and score. Only explicit user accepta
 Each eligible thread receives values from 0 to 1:
 
 - `goalRelevance`: coverage of required topics and stated objective terms;
-- `evidenceCoverage`: fraction of required subjects backed by turn- or artifact-level evidence;
-- `continuity`: project match, lineage continuity, and explicit prior references;
+- `evidenceCoverage`: depth and traceability of evidence supporting required subjects;
+- `continuity`: exact lineage and explicit reference continuity relative to the query anchor;
 - `activityFreshness`: 30-day activity decay;
 - `specializationMatch`: confirmed first, then evidence-backed suggested specialization;
-- `availability`: native accessibility and nonterminal host state, used only as convenience;
 - `conflictRisk`: unresolved contradictory required claims;
 - `missingRisk`: required subjects supported only by partial, stale, or unreadable coverage.
 
-The Goal Query is first frozen as a validated requirement vector. Each requirement has a canonical subject candidate, kind, importance (`required=3`, `preferred=2`, `contextual=1`), and source span in the user's query. Ambiguous subject resolution remains unresolved and contributes to `missingRisk` rather than being silently matched.
+The Goal Query is first frozen as a validated requirement vector. Each requirement has a canonical subject candidate, kind, importance (`required=3`, `preferred=2`, `contextual=1`), and source span in the user's query. Explicit completion criteria, prohibitions, and the direct object of the requested action are `required`; explicitly optional outcomes are `preferred`; background terms are `contextual`. The parser cannot add a requirement without a user-query source span. If it cannot identify at least one required subject, the query is `incomplete`. Ambiguous subject resolution remains unresolved and contributes to `missingRisk` rather than being silently matched.
 
 Per-requirement match values are:
 
@@ -124,43 +125,54 @@ Per-requirement match values are:
 - `0.50`: summary-only or unresolved semantic subject candidate;
 - `0.00`: no support.
 
+Per-requirement evidence depth values are:
+
+- `1.00`: exact native, command, artifact, or bounded Turn evidence;
+- `0.85`: extracted claim with a directly resolvable source item;
+- `0.35`: host-summary-only evidence;
+- `0.00`: metadata-only, unresolved, unreadable, or absent evidence.
+
+The query anchor set contains the native origin thread and any threads explicitly named by the user. Project membership is an eligibility condition in the first implementation and does not add ranking points.
+
+Lineage continuity relative to the closest anchor is `1.00` for the anchor itself or a direct parent or child, `0.75` within two exact lineage hops, `0.50` within the same exact lineage component, and `0.00` otherwise. Reference continuity is `1.00` for a direct explicit reference between candidate and anchor, `0.50` when both reference the same active decision or artifact, and `0.00` otherwise.
+
 Dimensions are then computed:
 
 ```text
 goalRelevance      = weightedMean(requirementMatch, importance)
-evidenceCoverage   = required importance backed by turn/artifact evidence / total required importance
-continuity         = 0.50 * projectMatch
-                   + 0.25 * lineageContinuity
-                   + 0.25 * explicitReferenceContinuity
-specializationMatch = 1.00 confirmed matching specialization
-                    = 0.70 suggested matching specialization
-                    = min(0.50, normalized matching topic weight) otherwise
-availability       = 1.00 readable and idle
-                    = 0.70 readable with nonexclusive activity
-                    = 0.40 readable with an active writer
-                    = 0.00 unreadable or missing
-conflictRisk       = conflicting required importance / total required importance
-missingRisk        = missing, stale, partial, or unresolved required importance / total required importance
+evidenceCoverage   = weightedMean(requiredEvidenceDepth, required importance)
+continuity         = 0.60 * lineageContinuity
+                   + 0.40 * referenceContinuity
+specializationMatch = weightedMean(perRequirementSpecializationMatch, importance)
+conflictRisk       = weightedMean(requiredConflictSeverity, required importance)
+missingRisk        = weightedMean(requiredMissingSeverity, required importance)
 ```
 
-When a denominator is zero, the dimension is `0` and its applicability is recorded separately; it is never defaulted to `1`.
+Per-requirement specialization match is `1.00` for a confirmed matching specialization, `0.70` for a suggested matching specialization, `min(0.50, topicWeight / 4)` for raw matching topic evidence, and `0.00` otherwise.
+
+Conflict severity per required subject is `1.00` for an unresolved equal- or higher-authority contradiction, `0.60` for an active lower-authority contradiction, `0.30` for a conflicting proposed alternative, and `0.00` for none.
+
+Missing severity per required subject is `1.00` for absent or unreadable evidence, `0.75` for metadata-only coverage, `0.50` for summary-only or structurally stale coverage, `0.25` for partial but current Turn coverage, and `0.00` for complete current evidence.
+
+When a denominator is zero, the dimension is marked `not_applicable`; it is never fabricated as `0` or `1`. If no query anchor exists, continuity is not applicable and its positive weight is redistributed proportionally across the other applicable positive dimensions.
+
+Native accessibility and writer activity are recorded separately as `navigationState` and `writerState`. They determine the available next action but do not change context-quality ranking.
 
 Provisional ordering score:
 
 ```text
 score = clamp(
     0.40 * goalRelevance
-  + 0.20 * evidenceCoverage
+  + 0.25 * evidenceCoverage
   + 0.15 * continuity
   + 0.10 * activityFreshness
   + 0.10 * specializationMatch
-  + 0.05 * availability
-  - 0.20 * conflictRisk
+  - 0.25 * conflictRisk
   - 0.15 * missingRisk,
   0, 1)
 ```
 
-The full vector is stored and displayed. The aggregate only orders eligible candidates.
+The positive weights total `1.00`; risks are explicit penalties rather than negative evidence hidden inside another variable. The full vector is stored and displayed. The aggregate only orders eligible candidates.
 
 ## Selection outcome
 
