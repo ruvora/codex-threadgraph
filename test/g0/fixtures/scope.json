@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "g0-fixture/1",
+  "capability": "validateScope",
+  "cases": [
+    {
+      "id": "scope-valid-project",
+      "description": "A bounded request for its authorized canonical project is accepted.",
+      "input": { "scopeKind": "project", "projectId": "prj_alpha", "authorizedProjectIds": ["prj_alpha"], "maxThreads": 100, "maxSourceChars": 120000 },
+      "expected": { "decision": "allow", "scopeKind": "project", "projectId": "prj_alpha" }
+    },
+    {
+      "id": "scope-missing-project-id",
+      "description": "Project scope without a canonical project ID is malformed.",
+      "input": { "scopeKind": "project", "authorizedProjectIds": ["prj_alpha"], "maxThreads": 100, "maxSourceChars": 120000 },
+      "expected": { "decision": "reject", "code": "SCOPE_INVALID", "nextAction": "correct_scope" }
+    },
+    {
+      "id": "scope-self-widening",
+      "description": "An indexing request cannot widen itself to another project.",
+      "input": { "scopeKind": "project", "projectId": "prj_beta", "authorizedProjectIds": ["prj_alpha"], "maxThreads": 100, "maxSourceChars": 120000 },
+      "expected": { "decision": "reject", "code": "SCOPE_WIDENING", "nextAction": "choose_authorized_project" }
+    },
+    {
+      "id": "scope-outside-reference",
+      "description": "An out-of-scope reference may be recorded but never read.",
+      "input": { "scopeKind": "project", "projectId": "prj_alpha", "authorizedProjectIds": ["prj_alpha"], "referencedThread": { "id": "thr_beta", "projectId": "prj_beta" }, "maxThreads": 100, "maxSourceChars": 120000 },
+      "expected": { "decision": "record_unresolved", "code": "THREAD_OUT_OF_SCOPE", "readAuthorized": false, "nextAction": null }
+    }
+  ]
+}

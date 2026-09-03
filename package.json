@@ -1,0 +1,11 @@
+{
+  "name": "codex-threadgraph",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "test:fixtures": "node --test test/g0/fixture-corpus.test.mjs",
+    "test:g0:red": "node --test test/g0/core-contract.red.test.mjs"
+  }
+}

@@ -29,6 +29,7 @@ This directory defines the implementation contract for Codex ThreadGraph. A beha
 23. [Implementation gates](./IMPLEMENTATION_GATES.md)
 24. [Review checklist](./REVIEW_CHECKLIST.md)
 25. [Host forward-test evidence](./evidence/HOST_FORWARD_TEST_CODEX_0.152.1.md)
+26. [G0 test strategy](../test/README.md)
 
 ## Authority
 

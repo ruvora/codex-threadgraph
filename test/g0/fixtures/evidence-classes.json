@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "g0-fixture/1",
+  "capability": "validateEvidence",
+  "cases": [
+    {
+      "id": "evidence-observed-lineage",
+      "description": "Native parent lineage remains observed and carries no confidence score.",
+      "input": { "evidenceClass": "observed", "sourceKind": "native_lineage", "nativeLocator": "parentThreadId", "confidenceBand": null, "numericConfidence": null },
+      "expected": { "decision": "allow", "evidenceClass": "observed", "confidenceBand": null }
+    },
+    {
+      "id": "evidence-extracted-range",
+      "description": "An extracted statement requires an exact bounded source range.",
+      "input": { "evidenceClass": "extracted", "sourceKind": "thread_item", "sourceRange": { "threadId": "thr_alpha", "turnId": "turn_1", "itemId": "item_1" }, "confidenceBand": null },
+      "expected": { "decision": "allow", "evidenceClass": "extracted", "confidenceBand": null }
+    },
+    {
+      "id": "evidence-extracted-missing-range",
+      "description": "Extracted evidence without a resolvable range is rejected.",
+      "input": { "evidenceClass": "extracted", "sourceKind": "thread_item", "sourceRange": null, "confidenceBand": null },
+      "expected": { "decision": "reject", "code": "EVIDENCE_RANGE_REQUIRED", "nextAction": "retain_unresolved" }
+    },
+    {
+      "id": "evidence-inferred-disguised-observed",
+      "description": "Model-derived evidence cannot be published as an observed fact.",
+      "input": { "evidenceClass": "inferred", "displayClass": "observed", "evidenceIds": ["evd_1"], "confidenceBand": "medium" },
+      "expected": { "decision": "reject", "code": "EVIDENCE_CLASS_ESCALATION", "nextAction": "publish_as_inferred" }
+    },
+    {
+      "id": "evidence-exact-with-confidence",
+      "description": "Exact evidence cannot carry a fabricated confidence score.",
+      "input": { "evidenceClass": "observed", "sourceKind": "native_lineage", "nativeLocator": "parentThreadId", "confidenceBand": "high", "numericConfidence": 0.99 },
+      "expected": { "decision": "reject", "code": "EXACT_CONFIDENCE_FORBIDDEN", "nextAction": "remove_confidence" }
+    }
+  ]
+}

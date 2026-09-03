@@ -4,6 +4,8 @@ Implementation proceeds only after the preceding gate has durable failure-path t
 
 ## G0 — Contract fixtures
 
+Status: red. The fixture corpus and its structural validator exist; the named core capabilities remain intentionally unimplemented until G1 and G2.
+
 - malformed scope and out-of-scope reference rejection;
 - indexing starts only for first project-graph open and explicit refresh;
 - Goal Query, search, inspection, navigation, app launch, TTL, and ThreadHub activity cannot start indexing;

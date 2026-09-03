@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "g0-fixture/1",
+  "capability": "validateModelEnvelope",
+  "cases": [
+    {
+      "id": "model-numeric-confidence",
+      "description": "A model-provided numeric confidence cannot enter the published graph.",
+      "input": { "claims": [], "relationCandidates": [{ "kind": "related_to", "evidenceIds": ["evd_1"], "numericConfidence": 0.97 }] },
+      "expected": { "decision": "reject", "code": "MODEL_NUMERIC_CONFIDENCE_FORBIDDEN", "nextAction": "derive_confidence_from_evidence" }
+    },
+    {
+      "id": "model-selection-score",
+      "description": "A model-provided ranking score cannot replace deterministic selection.",
+      "input": { "claims": [], "recommendedThreadId": "thr_alpha", "selectionScore": 0.99 },
+      "expected": { "decision": "reject", "code": "MODEL_SELECTION_SCORE_FORBIDDEN", "nextAction": "derive_selection_deterministically" }
+    },
+    {
+      "id": "model-authority-grant",
+      "description": "A model envelope cannot grant execution or navigation authority.",
+      "input": { "claims": [], "grantedActions": ["resume_thread"] },
+      "expected": { "decision": "reject", "code": "MODEL_AUTHORITY_FORBIDDEN", "nextAction": null }
+    },
+    {
+      "id": "model-evidence-envelope",
+      "description": "A model may return typed claims and candidates with exact evidence locators but no numeric authority.",
+      "input": { "claims": [{ "kind": "topic", "subjectCandidate": "contract validation", "evidenceIds": ["evd_1"] }], "relationCandidates": [{ "kind": "related_to", "evidenceIds": ["evd_1"], "explanation": "Both discuss contract validation." }] },
+      "expected": { "decision": "allow", "numericFieldsAccepted": false, "authorityGranted": false }
+    }
+  ]
+}

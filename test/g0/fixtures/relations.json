@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "g0-fixture/1",
+  "capability": "validateRelation",
+  "cases": [
+    {
+      "id": "relation-contradiction-topic-overlap",
+      "description": "Topic overlap alone cannot establish contradiction.",
+      "input": { "kind": "contradicts", "sameCanonicalSubject": false, "incompatiblePredicateOrPolarity": false, "overlappingValidity": true, "leftEvidenceClass": "inferred", "rightEvidenceClass": "inferred" },
+      "expected": { "decision": "reject", "code": "CONTRADICTION_SEMANTICS_MISSING", "lifecycle": "candidate" }
+    },
+    {
+      "id": "relation-contradiction-valid",
+      "description": "Contradiction requires the same subject, incompatible claims, overlapping validity, and extracted evidence on both sides.",
+      "input": { "kind": "contradicts", "sameCanonicalSubject": true, "incompatiblePredicateOrPolarity": true, "overlappingValidity": true, "leftEvidenceClass": "extracted", "rightEvidenceClass": "extracted" },
+      "expected": { "decision": "allow", "kind": "contradicts", "lifecycle": "current" }
+    },
+    {
+      "id": "relation-supersession-recency-only",
+      "description": "A later timestamp alone cannot establish supersession.",
+      "input": { "kind": "supersedes", "isLater": true, "explicitReplacementEvidence": false, "acceptedUserResolution": false },
+      "expected": { "decision": "reject", "code": "SUPERSESSION_AUTHORITY_MISSING", "lifecycle": "candidate" }
+    },
+    {
+      "id": "relation-supersession-explicit",
+      "description": "Explicit replacement evidence can establish supersession.",
+      "input": { "kind": "supersedes", "isLater": true, "explicitReplacementEvidence": true, "acceptedUserResolution": false },
+      "expected": { "decision": "allow", "kind": "supersedes", "lifecycle": "current" }
+    },
+    {
+      "id": "relation-continuation-without-link",
+      "description": "Recency and topic continuity without lineage or explicit reference cannot establish continuation.",
+      "input": { "kind": "continues", "isLater": true, "exactLineage": false, "explicitReference": false, "subjectContinuity": true },
+      "expected": { "decision": "reject", "code": "CONTINUATION_LINK_MISSING", "lifecycle": "candidate" }
+    }
+  ]
+}
