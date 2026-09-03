@@ -15,6 +15,12 @@
       "expected": { "decision": "allow", "kind": "contradicts", "lifecycle": "current" }
     },
     {
+      "id": "relation-contradiction-observed",
+      "description": "Observed evidence is at least as strong as extracted evidence for contradiction semantics.",
+      "input": { "kind": "contradicts", "sameCanonicalSubject": true, "incompatiblePredicateOrPolarity": true, "overlappingValidity": true, "leftEvidenceClass": "observed", "rightEvidenceClass": "extracted" },
+      "expected": { "decision": "allow", "kind": "contradicts", "lifecycle": "current" }
+    },
+    {
       "id": "relation-supersession-recency-only",
       "description": "A later timestamp alone cannot establish supersession.",
       "input": { "kind": "supersedes", "isLater": true, "explicitReplacementEvidence": false, "acceptedUserResolution": false },

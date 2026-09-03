@@ -68,7 +68,7 @@ The first release updates a project graph only on its first open or an explicit 
 
 ## Status
 
-`0.1.0` design baseline, read-only skill scaffold, and G0 red contract fixture corpus. Domain contracts and G0–G8 implementation gates are documented. A persistent index, MCP server, and interactive graph application are planned but are not advertised as implemented.
+`0.1.0` design baseline, read-only skill scaffold, and passing G0 contract kernel. Domain contracts and G0–G8 implementation gates are documented. Immutable graph revisions, a native source adapter, persistent index, MCP server, and interactive graph application are planned but are not advertised as implemented.
 
 ## Author
 

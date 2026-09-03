@@ -6,19 +6,19 @@
       "id": "selection-perfect-positive",
       "description": "Full positive dimensions and no risk clamp to one.",
       "input": { "goalRelevance": 1, "evidenceCoverage": 1, "continuity": 1, "activityFreshness": 1, "specializationMatch": 1, "conflictRisk": 0, "missingRisk": 0 },
-      "expected": { "score": 1, "policyVersion": "selection-policy/1-alpha" }
+      "expected": { "score": 1, "rounding": "half_away_from_zero_6dp", "policyVersion": "selection-policy/1-alpha" }
     },
     {
       "id": "selection-weighted-golden",
       "description": "A representative complete vector has a reproducible weighted score.",
       "input": { "goalRelevance": 0.8, "evidenceCoverage": 0.8, "continuity": 0.5, "activityFreshness": 0.5, "specializationMatch": 0.7, "conflictRisk": 0.2, "missingRisk": 0.25 },
-      "expected": { "score": 0.6275, "policyVersion": "selection-policy/1-alpha" }
+      "expected": { "score": 0.6275, "rounding": "half_away_from_zero_6dp", "policyVersion": "selection-policy/1-alpha" }
     },
     {
       "id": "selection-risk-clamp-zero",
       "description": "Risk penalties cannot produce a score below zero.",
       "input": { "goalRelevance": 0, "evidenceCoverage": 0, "continuity": 0, "activityFreshness": 0, "specializationMatch": 0, "conflictRisk": 1, "missingRisk": 1 },
-      "expected": { "score": 0, "policyVersion": "selection-policy/1-alpha" }
+      "expected": { "score": 0, "rounding": "half_away_from_zero_6dp", "policyVersion": "selection-policy/1-alpha" }
     },
     {
       "id": "selection-no-anchor-redistribution",

@@ -15,6 +15,18 @@
       "expected": { "decision": "reject", "code": "MODEL_SELECTION_SCORE_FORBIDDEN", "nextAction": "derive_selection_deterministically" }
     },
     {
+      "id": "model-confidence-alias",
+      "description": "Renaming numericConfidence to confidence cannot bypass the model boundary.",
+      "input": { "claims": [], "relationCandidates": [{ "kind": "related_to", "evidenceIds": ["evd_1"], "confidence": 0.97 }] },
+      "expected": { "decision": "reject", "code": "MODEL_NUMERIC_CONFIDENCE_FORBIDDEN", "nextAction": "derive_confidence_from_evidence" }
+    },
+    {
+      "id": "model-score-alias",
+      "description": "A nested score alias cannot bypass deterministic selection.",
+      "input": { "claims": [], "recommendation": { "threadId": "thr_alpha", "score": 0.99 } },
+      "expected": { "decision": "reject", "code": "MODEL_SELECTION_SCORE_FORBIDDEN", "nextAction": "derive_selection_deterministically" }
+    },
+    {
       "id": "model-authority-grant",
       "description": "A model envelope cannot grant execution or navigation authority.",
       "input": { "claims": [], "grantedActions": ["resume_thread"] },
