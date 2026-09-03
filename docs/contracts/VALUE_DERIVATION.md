@@ -2,6 +2,8 @@
 
 Policy versions in this document are provisional `1-alpha` values and must be calibrated before their implementation gates exit.
 
+The governing design decision is [ADR-005: deterministic selection scoring](../adr/ADR-005-DETERMINISTIC-SELECTION-SCORING.md).
+
 ## Evidence properties
 
 Every supporting item carries separate properties:
