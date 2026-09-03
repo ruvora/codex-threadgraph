@@ -1,0 +1,19 @@
+{
+  "name": "codex-threadgraph",
+  "version": "0.1.0",
+  "description": "Build evidence-backed relationship graphs from Codex thread context.",
+  "author": {
+    "name": "ShinYEB",
+    "url": "https://github.com/ShinYEB"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "RUVORA Codex ThreadGraph",
+    "shortDescription": "Map and navigate relationships between Codex threads.",
+    "longDescription": "Builds a local, evidence-backed context graph from Codex threads so users can understand lineage, shared topics, decisions, conflicts, and specialization before choosing a thread.",
+    "developerName": "ShinYEB",
+    "category": "Productivity",
+    "capabilities": ["Thread context analysis", "Evidence-backed relationship mapping", "Thread selection guidance"],
+    "defaultPrompt": "Map the relevant Codex threads for this project and explain their relationships with evidence."
+  }
+}
