@@ -10,7 +10,7 @@
 - [x] ADRs, review checklist, and G0–G8 implementation gates
 - [x] Concrete graph-generation pipeline, identity schema, value formulas, and worked example
 - [ ] Calibrated extraction, relation, and selection fixture corpus
-- [ ] Real thread-list and thread-read forward test
+- [x] Real thread-list and thread-read forward test against Codex 0.152.1
 
 ## 0.2 — Local persistent graph
 
