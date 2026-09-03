@@ -56,3 +56,5 @@ Graph revisions are immutable. Re-extraction, new source content, user conflict 
 ## Projection rule
 
 A direct thread-to-thread edge is a projection over underlying evidence. The graph must retain the evidence path that produced it. A similarity score without an inspectable evidence path is not a valid relationship.
+
+Deterministic scores and thresholds are defined in [Value derivation](./VALUE_DERIVATION.md). Identity and record shapes are defined in [Data schema and IDs](./DATA_SCHEMA_AND_IDS.md).

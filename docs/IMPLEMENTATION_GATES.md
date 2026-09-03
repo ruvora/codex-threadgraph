@@ -11,6 +11,8 @@ Implementation proceeds only after the preceding gate has durable failure-path t
 - exact, extracted, and inferred evidence remain distinct;
 - contradiction and supersession false-positive fixtures;
 - recommendation cannot start or resume a thread.
+- deterministic ID, digest, freshness, confidence-band, relation-strength, and selection-score fixtures;
+- model-provided numeric confidence cannot enter the published graph.
 
 Exit: tests fail for the intended reasons against the unimplemented core.
 
@@ -20,6 +22,7 @@ Exit: tests fail for the intended reasons against the unimplemented core.
 - Graph Revision construction and evidence closure;
 - relation lifecycle and invalidation;
 - deterministic fingerprints.
+- typed source and extraction envelope validation.
 
 Exit: no current edge exists without a complete evidence path.
 
@@ -47,6 +50,8 @@ Exit: forced termination at every publication stage produces either the old or n
 ## G4 — Extraction and exact relationships
 
 - topic, decision, constraint, artifact, and result extraction;
+- modality, polarity, lifecycle, and speaker-role preservation;
+- canonical subject resolution with ambiguous merge rejection;
 - exact lineage and artifact relationships;
 - incremental digest reuse;
 - source change invalidation.
@@ -57,6 +62,7 @@ Exit: unchanged ranges are not reprocessed and changed evidence invalidates only
 
 - relation-specific candidate generation;
 - confidence calibration and thresholds;
+- deterministic confidence bands and relation-strength projection;
 - alternatives and conflict preservation;
 - model and policy revision tracking.
 
@@ -65,11 +71,14 @@ Exit: topic overlap cannot produce contradiction or supersession without the req
 ## G6 — Selection and specialization
 
 - eligibility gate and dimensioned ranking;
+- deterministic versioned selection score and outcome thresholds;
 - all four Selection Report outcomes;
 - suggested, confirmed, rejected, and superseded specialization revisions;
 - explicit user acceptance boundary.
 
 Exit: every recommendation explains evidence, missing context, freshness, and conflicts.
+
+G5 and G6 also require the targets in [Quality and calibration](./contracts/QUALITY_AND_CALIBRATION.md).
 
 ## G7 — MCP and graph experience
 

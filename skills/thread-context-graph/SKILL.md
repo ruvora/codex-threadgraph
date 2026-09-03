@@ -18,6 +18,8 @@ Map relationships between Codex threads within the user's requested scope.
 7. For a selection request, rank candidates against the stated goal and explain evidence, freshness, conflicts, missing context, and confidence.
 8. Navigate to a thread only when the user asks to open or select it and the host provides native navigation.
 
+For an allowed initial build or Refresh, read [the generation pipeline](../../docs/GENERATION_PIPELINE.md). When deriving relationship strength, specialization, or a Selection Report, read [the value derivation contract](../../docs/contracts/VALUE_DERIVATION.md). Do not invent replacement weights or budgets in prompt text.
+
 ## Constraints
 
 - Remain read-only. Do not start Turns, resume threads, archive threads, modify projects, or invoke an orchestrator.

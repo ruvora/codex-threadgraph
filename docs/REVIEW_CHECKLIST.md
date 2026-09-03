@@ -12,7 +12,9 @@
 - [x] Direct thread relationships retain evidence paths.
 - [x] Contradiction and supersession require more than similarity or recency.
 - [ ] Canonical subject normalization rules need representative fixtures.
-- [ ] Artifact identity across worktrees and repositories needs a precise key contract.
+- [x] Artifact identity separates logical project paths from content revisions across worktrees.
+- [x] Stable ID and relation revision rules are defined.
+- [x] Candidate blocking prevents unbounded all-pairs inference.
 
 ## Ingestion and privacy
 
@@ -32,6 +34,7 @@
 - [x] Recommendation and specialization do not grant authority.
 - [x] Persistent specialization requires explicit user acceptance.
 - [ ] Ranking calibration datasets and quality metrics require realistic thread fixtures.
+- [x] Provisional value formulas and promotion metrics are explicit.
 
 ## Persistence and recovery
 

@@ -8,6 +8,8 @@
 - [x] Source ingestion, immutable revisions, state, and recovery contracts
 - [x] Selection, specialization, host navigation, UI, and ThreadHub boundaries
 - [x] ADRs, review checklist, and G0–G8 implementation gates
+- [x] Concrete graph-generation pipeline, identity schema, value formulas, and worked example
+- [ ] Calibrated extraction, relation, and selection fixture corpus
 - [ ] Real thread-list and thread-read forward test
 
 ## 0.2 — Local persistent graph
