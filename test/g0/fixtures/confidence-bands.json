@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "g0-fixture/1",
+  "capability": "deriveConfidenceBand",
+  "cases": [
+    {
+      "id": "confidence-high",
+      "description": "Two independent direct ranges with a concrete subject and no counter-evidence produce high.",
+      "input": { "independentDirectRanges": 2, "hasConcreteSubject": true, "hasIndependentCorroboration": true, "hostSummaryOnly": false, "hasUnresolvedCounterEvidence": false, "hasEvidenceClosure": true, "semanticRuleSatisfied": true },
+      "expected": { "band": "high", "orderingValue": 0.85, "policyVersion": "confidence-policy/1-alpha" }
+    },
+    {
+      "id": "confidence-medium",
+      "description": "One direct range plus independent corroboration produces medium.",
+      "input": { "independentDirectRanges": 1, "hasConcreteSubject": true, "hasIndependentCorroboration": true, "hostSummaryOnly": false, "hasUnresolvedCounterEvidence": false, "hasEvidenceClosure": true, "semanticRuleSatisfied": true },
+      "expected": { "band": "medium", "orderingValue": 0.65, "policyVersion": "confidence-policy/1-alpha" }
+    },
+    {
+      "id": "confidence-low-summary-only",
+      "description": "Summary-only support remains low confidence.",
+      "input": { "independentDirectRanges": 0, "hasConcreteSubject": true, "hasIndependentCorroboration": false, "hostSummaryOnly": true, "hasUnresolvedCounterEvidence": false, "hasEvidenceClosure": true, "semanticRuleSatisfied": true },
+      "expected": { "band": "low", "orderingValue": 0.4, "policyVersion": "confidence-policy/1-alpha" }
+    },
+    {
+      "id": "confidence-rejected-closure",
+      "description": "Missing evidence closure rejects the inference.",
+      "input": { "independentDirectRanges": 2, "hasConcreteSubject": true, "hasIndependentCorroboration": true, "hostSummaryOnly": false, "hasUnresolvedCounterEvidence": false, "hasEvidenceClosure": false, "semanticRuleSatisfied": true },
+      "expected": { "band": "rejected", "orderingValue": null, "policyVersion": "confidence-policy/1-alpha" }
+    },
+    {
+      "id": "confidence-rejected-counter-evidence",
+      "description": "Unresolved counter-evidence prevents a high confidence publication.",
+      "input": { "independentDirectRanges": 2, "hasConcreteSubject": true, "hasIndependentCorroboration": true, "hostSummaryOnly": false, "hasUnresolvedCounterEvidence": true, "hasEvidenceClosure": true, "semanticRuleSatisfied": true },
+      "expected": { "band": "rejected", "orderingValue": null, "policyVersion": "confidence-policy/1-alpha" }
+    }
+  ]
+}

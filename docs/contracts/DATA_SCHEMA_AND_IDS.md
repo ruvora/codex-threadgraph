@@ -4,6 +4,18 @@
 
 Externally visible IDs use a type prefix plus base32-encoded SHA-256 or UUIDv7 value. Hash inputs use UTF-8, length-prefixed fields, and an explicit schema namespace.
 
+For `id-policy/1-alpha`, each hash component is framed as eight lowercase hexadecimal digits containing its UTF-8 byte length, followed by `:`, followed by the original UTF-8 bytes. The input is the concatenation of the framed namespace and each framed field in contract order. Hashed IDs encode the 32-byte SHA-256 result using lowercase RFC 4648 base32 without padding. Source digests use the same framing and lowercase hexadecimal output prefixed by `sha256:`. Mutable labels, absent optional fields, and presentation order never enter an identity hash unless an entity rule explicitly includes them.
+
+Content-addressed ID namespaces use `codex-threadgraph/<entity>-id/1`, where `<entity>` is the lower-case entity name from the ID table with spaces replaced by hyphens. The bounded source digest namespace is `codex-threadgraph/source-digest/1`. A namespace change is a schema migration and produces different IDs; it is never introduced silently.
+
+Example thread input:
+
+```text
+namespace = codex-threadgraph/thread-id/1
+fields    = [host-local, native-123]
+id        = thr_ptb37vxwbn6pfjteocmhhn5fdmzfg7ilunakyokctdozld5mzrha
+```
+
 | Entity | ID rule |
 |---|---|
 | Project | `prj_` + hash of host identity and canonical project identity |

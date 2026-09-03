@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "g0-fixture/1",
+  "capability": "deriveFreshness",
+  "cases": [
+    {
+      "id": "freshness-activity-zero-days",
+      "description": "Current substantive activity has full freshness.",
+      "input": { "kind": "activity", "ageDays": 0 },
+      "expected": { "value": 1, "policyVersion": "freshness-policy/1-alpha" }
+    },
+    {
+      "id": "freshness-activity-half-life",
+      "description": "Activity freshness halves after 30 days.",
+      "input": { "kind": "activity", "ageDays": 30 },
+      "expected": { "value": 0.5, "policyVersion": "freshness-policy/1-alpha" }
+    },
+    {
+      "id": "freshness-activity-two-half-lives",
+      "description": "Activity freshness is one quarter after 60 days.",
+      "input": { "kind": "activity", "ageDays": 60 },
+      "expected": { "value": 0.25, "policyVersion": "freshness-policy/1-alpha" }
+    },
+    {
+      "id": "freshness-evidence-half-life",
+      "description": "Ordinary evidence recency halves after 90 days.",
+      "input": { "kind": "evidence", "ageDays": 90 },
+      "expected": { "value": 0.5, "policyVersion": "freshness-policy/1-alpha" }
+    },
+    {
+      "id": "freshness-negative-age",
+      "description": "A future activity age is invalid rather than clamped silently.",
+      "input": { "kind": "activity", "ageDays": -1 },
+      "expected": { "decision": "reject", "code": "AGE_DAYS_INVALID" }
+    }
+  ]
+}

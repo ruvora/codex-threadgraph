@@ -63,11 +63,12 @@ The first release updates a project graph only on its first open or an explicit 
 - [Graph experience contract](./docs/contracts/GRAPH_EXPERIENCE.md)
 - [ThreadHub interoperability contract](./docs/contracts/THREADHUB_INTEROP.md)
 - [Implementation gates](./docs/IMPLEMENTATION_GATES.md)
+- [G0 test strategy](./test/README.md)
 - [Roadmap](./ROADMAP.md)
 
 ## Status
 
-`0.1.0` design baseline and read-only skill scaffold. Domain contracts and G0–G8 implementation gates are documented. A persistent index, MCP server, and interactive graph application are planned but are not advertised as implemented.
+`0.1.0` design baseline, read-only skill scaffold, and G0 red contract fixture corpus. Domain contracts and G0–G8 implementation gates are documented. A persistent index, MCP server, and interactive graph application are planned but are not advertised as implemented.
 
 ## Author
 

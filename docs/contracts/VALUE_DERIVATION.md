@@ -79,7 +79,7 @@ Evidence contributions under `relation-strength/1-alpha`:
 Points are counted once per canonical evidence key. Strength is:
 
 - `strong`: exact lineage, or at least 6 points from two evidence categories;
-- `moderate`: 3–5 points;
+- `moderate`: at least 3 points when the strong rule is not satisfied;
 - `weak`: 1–2 points;
 - absent: 0 points.
 
@@ -175,6 +175,8 @@ score = clamp(
 ```
 
 The positive weights total `1.00`; risks are explicit penalties rather than negative evidence hidden inside another variable. The full vector is stored and displayed. The aggregate only orders eligible candidates.
+
+Selection scores are rounded only at the publication boundary using decimal half-away-from-zero to six places. Threshold comparisons use the unrounded value. A dimension outside `[0, 1]` is invalid; individual dimensions are never silently clamped.
 
 ## Selection outcome
 

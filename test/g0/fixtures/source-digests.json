@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "g0-fixture/1",
+  "capability": "deriveSourceDigest",
+  "cases": [
+    {
+      "id": "digest-source-golden",
+      "description": "A source range has a reproducible framed SHA-256 digest.",
+      "input": { "threadId": "thr-example", "sourceRange": "turns:1-2", "content": "hello world" },
+      "expected": { "digest": "sha256:04776c91061f2e18d5056a787dfbf25be629bc266681decfb72ad1379085d056", "policyVersion": "digest-policy/1-alpha" }
+    },
+    {
+      "id": "digest-content-change",
+      "description": "Changing bounded content changes its digest.",
+      "input": { "threadId": "thr-example", "sourceRange": "turns:1-2", "content": "hello world!" },
+      "expected": { "digest": "sha256:34df000cb3cb468c192f6e2dfa6060228da1e6ddf16f518174d7a483aeb85fc6", "policyVersion": "digest-policy/1-alpha" }
+    }
+  ]
+}

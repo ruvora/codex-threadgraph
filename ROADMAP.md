@@ -9,6 +9,7 @@
 - [x] Selection, specialization, host navigation, UI, and ThreadHub boundaries
 - [x] ADRs, review checklist, and G0–G8 implementation gates
 - [x] Concrete graph-generation pipeline, identity schema, value formulas, and worked example
+- [x] G0 seed fixture corpus and executable red contract suite
 - [ ] Calibrated extraction, relation, and selection fixture corpus
 - [x] Real thread-list and thread-read forward test against Codex 0.152.1
 

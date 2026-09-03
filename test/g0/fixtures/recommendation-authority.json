@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "g0-fixture/1",
+  "capability": "authorizeRecommendationAction",
+  "cases": [
+    {
+      "id": "authority-start-thread",
+      "description": "A recommendation cannot start a thread.",
+      "input": { "action": "start_thread", "explicitUserAction": true, "recommendationId": "sel_1" },
+      "expected": { "decision": "deny", "code": "EXECUTION_AUTHORITY_FORBIDDEN", "nextAction": null }
+    },
+    {
+      "id": "authority-resume-thread",
+      "description": "A recommendation cannot resume a thread.",
+      "input": { "action": "resume_thread", "explicitUserAction": true, "recommendationId": "sel_1" },
+      "expected": { "decision": "deny", "code": "EXECUTION_AUTHORITY_FORBIDDEN", "nextAction": null }
+    },
+    {
+      "id": "authority-send-prompt",
+      "description": "Navigation cannot send a prompt to the selected thread.",
+      "input": { "action": "send_prompt", "explicitUserAction": true, "recommendationId": "sel_1" },
+      "expected": { "decision": "deny", "code": "PROMPT_SUBMISSION_FORBIDDEN", "nextAction": null }
+    },
+    {
+      "id": "authority-explicit-navigation",
+      "description": "An explicit user selection may navigate to an existing native thread without a prompt.",
+      "input": { "action": "navigate", "explicitUserAction": true, "nativeThreadIdKnown": true, "hostConnected": true, "sendsPrompt": false },
+      "expected": { "decision": "allow", "action": "navigate", "nextAction": "open_native_thread" }
+    },
+    {
+      "id": "authority-implicit-navigation",
+      "description": "A recommendation cannot navigate without an explicit user action.",
+      "input": { "action": "navigate", "explicitUserAction": false, "nativeThreadIdKnown": true, "hostConnected": true, "sendsPrompt": false },
+      "expected": { "decision": "deny", "code": "EXPLICIT_SELECTION_REQUIRED", "nextAction": "await_user_selection" }
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "g0-fixture/1",
+  "capability": "deriveRelationStrength",
+  "cases": [
+    {
+      "id": "strength-exact-lineage",
+      "description": "Exact native lineage is strong by itself.",
+      "input": { "exactNativeLineage": true, "sharedActiveDecisions": 0, "sharedArtifactIdentities": 0, "sharedActiveConstraints": 0, "explicitCrossReferences": 0, "sharedCanonicalTopics": 0 },
+      "expected": { "points": 6, "categories": 1, "strength": "strong", "policyVersion": "relation-strength/1-alpha" }
+    },
+    {
+      "id": "strength-six-two-categories",
+      "description": "Six points from two categories is strong.",
+      "input": { "exactNativeLineage": false, "sharedActiveDecisions": 1, "sharedArtifactIdentities": 1, "sharedActiveConstraints": 0, "explicitCrossReferences": 0, "sharedCanonicalTopics": 0 },
+      "expected": { "points": 6, "categories": 2, "strength": "strong", "policyVersion": "relation-strength/1-alpha" }
+    },
+    {
+      "id": "strength-six-one-category",
+      "description": "Six points from repeated decision keys but one category remains moderate.",
+      "input": { "exactNativeLineage": false, "sharedActiveDecisions": 2, "sharedArtifactIdentities": 0, "sharedActiveConstraints": 0, "explicitCrossReferences": 0, "sharedCanonicalTopics": 0 },
+      "expected": { "points": 6, "categories": 1, "strength": "moderate", "policyVersion": "relation-strength/1-alpha" }
+    },
+    {
+      "id": "strength-five-points",
+      "description": "Five points is moderate.",
+      "input": { "exactNativeLineage": false, "sharedActiveDecisions": 1, "sharedArtifactIdentities": 0, "sharedActiveConstraints": 1, "explicitCrossReferences": 0, "sharedCanonicalTopics": 0 },
+      "expected": { "points": 5, "categories": 2, "strength": "moderate", "policyVersion": "relation-strength/1-alpha" }
+    },
+    {
+      "id": "strength-two-points",
+      "description": "Two points is weak.",
+      "input": { "exactNativeLineage": false, "sharedActiveDecisions": 0, "sharedArtifactIdentities": 0, "sharedActiveConstraints": 0, "explicitCrossReferences": 1, "sharedCanonicalTopics": 0 },
+      "expected": { "points": 2, "categories": 1, "strength": "weak", "policyVersion": "relation-strength/1-alpha" }
+    },
+    {
+      "id": "strength-zero-points",
+      "description": "No qualifying evidence produces no relationship strength.",
+      "input": { "exactNativeLineage": false, "sharedActiveDecisions": 0, "sharedArtifactIdentities": 0, "sharedActiveConstraints": 0, "explicitCrossReferences": 0, "sharedCanonicalTopics": 0 },
+      "expected": { "points": 0, "categories": 0, "strength": "absent", "policyVersion": "relation-strength/1-alpha" }
+    }
+  ]
+}

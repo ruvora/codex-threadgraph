@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "g0-fixture/1",
+  "capability": "deriveStableId",
+  "cases": [
+    {
+      "id": "identity-thread-golden",
+      "description": "Thread identity is a golden hash of host and native ID.",
+      "input": { "kind": "thread", "hostId": "host-local", "nativeThreadId": "native-123", "title": "Original title" },
+      "expected": { "id": "thr_ptb37vxwbn6pfjteocmhhn5fdmzfg7ilunakyokctdozld5mzrha", "policyVersion": "id-policy/1-alpha" }
+    },
+    {
+      "id": "identity-title-mutation",
+      "description": "A mutable title cannot replace or alter native identity.",
+      "input": { "kind": "thread", "hostId": "host-local", "nativeThreadId": "native-123", "title": "Completely different title" },
+      "expected": { "id": "thr_ptb37vxwbn6pfjteocmhhn5fdmzfg7ilunakyokctdozld5mzrha", "policyVersion": "id-policy/1-alpha" }
+    },
+    {
+      "id": "identity-project-golden",
+      "description": "Saved project identity has a stable golden ID.",
+      "input": { "kind": "project", "hostId": "host-local", "canonicalProjectId": "saved-project-abc" },
+      "expected": { "id": "prj_gvirg6d5hdvr7l4t7y3ai2d3xvhnee7gmyjzgt4xkiygmy2ejdyq", "policyVersion": "id-policy/1-alpha" }
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "g0-fixture/1",
+  "capability": "authorizeIndexUpdate",
+  "cases": [
+    {
+      "id": "trigger-initial-empty-graph",
+      "description": "First project graph open may index when no revision exists.",
+      "input": { "trigger": "initial_graph_open", "projectId": "prj_alpha", "selectedProjectId": "prj_alpha", "hasPublishedRevision": false },
+      "expected": { "decision": "allow", "mode": "initial", "nextAction": null }
+    },
+    {
+      "id": "trigger-initial-existing-graph",
+      "description": "Opening an existing graph is a read and cannot reindex.",
+      "input": { "trigger": "initial_graph_open", "projectId": "prj_alpha", "selectedProjectId": "prj_alpha", "hasPublishedRevision": true },
+      "expected": { "decision": "deny", "code": "REVISION_ALREADY_EXISTS", "nextAction": "read_current_revision" }
+    },
+    {
+      "id": "trigger-explicit-refresh",
+      "description": "Explicit refresh may index the currently selected project.",
+      "input": { "trigger": "explicit_refresh", "projectId": "prj_alpha", "selectedProjectId": "prj_alpha", "hasPublishedRevision": true, "userInitiated": true },
+      "expected": { "decision": "allow", "mode": "refresh", "nextAction": null }
+    },
+    {
+      "id": "trigger-refresh-wrong-project",
+      "description": "Refresh cannot target a project other than the selected graph.",
+      "input": { "trigger": "explicit_refresh", "projectId": "prj_beta", "selectedProjectId": "prj_alpha", "hasPublishedRevision": true, "userInitiated": true },
+      "expected": { "decision": "deny", "code": "PROJECT_NOT_SELECTED", "nextAction": "select_project_graph" }
+    },
+    {
+      "id": "trigger-goal-query",
+      "description": "A Goal Query reads a published revision and cannot refresh it.",
+      "input": { "trigger": "goal_query", "projectId": "prj_alpha", "hasPublishedRevision": true },
+      "expected": { "decision": "deny", "code": "TRIGGER_NOT_AUTHORIZED", "nextAction": null }
+    },
+    {
+      "id": "trigger-search",
+      "description": "Search cannot start indexing.",
+      "input": { "trigger": "search", "projectId": "prj_alpha", "hasPublishedRevision": true },
+      "expected": { "decision": "deny", "code": "TRIGGER_NOT_AUTHORIZED", "nextAction": null }
+    },
+    {
+      "id": "trigger-inspection",
+      "description": "Node or edge inspection cannot start indexing.",
+      "input": { "trigger": "inspection", "projectId": "prj_alpha", "hasPublishedRevision": true },
+      "expected": { "decision": "deny", "code": "TRIGGER_NOT_AUTHORIZED", "nextAction": null }
+    },
+    {
+      "id": "trigger-navigation",
+      "description": "Native navigation cannot start indexing.",
+      "input": { "trigger": "navigation", "projectId": "prj_alpha", "hasPublishedRevision": true },
+      "expected": { "decision": "deny", "code": "TRIGGER_NOT_AUTHORIZED", "nextAction": null }
+    },
+    {
+      "id": "trigger-application-launch",
+      "description": "Launching the application cannot start indexing.",
+      "input": { "trigger": "application_launch", "projectId": "prj_alpha", "hasPublishedRevision": true },
+      "expected": { "decision": "deny", "code": "TRIGGER_NOT_AUTHORIZED", "nextAction": null }
+    },
+    {
+      "id": "trigger-ttl-expiry",
+      "description": "Elapsed TTL may report staleness but cannot start indexing.",
+      "input": { "trigger": "ttl_expiry", "projectId": "prj_alpha", "hasPublishedRevision": true },
+      "expected": { "decision": "deny", "code": "TRIGGER_NOT_AUTHORIZED", "nextAction": "offer_explicit_refresh" }
+    },
+    {
+      "id": "trigger-native-thread-created",
+      "description": "Native thread creation cannot start indexing.",
+      "input": { "trigger": "native_thread_created", "projectId": "prj_alpha", "hasPublishedRevision": true },
+      "expected": { "decision": "deny", "code": "TRIGGER_NOT_AUTHORIZED", "nextAction": null }
+    },
+    {
+      "id": "trigger-threadhub-activity",
+      "description": "ThreadHub activity cannot start indexing.",
+      "input": { "trigger": "threadhub_activity", "projectId": "prj_alpha", "hasPublishedRevision": true },
+      "expected": { "decision": "deny", "code": "TRIGGER_NOT_AUTHORIZED", "nextAction": null }
+    },
+    {
+      "id": "trigger-recovery-continuation",
+      "description": "Recovery may continue an original authorized refresh under the same lease identity.",
+      "input": { "trigger": "recovery", "projectId": "prj_alpha", "originalTrigger": "explicit_refresh", "originalRequestId": "idx_123", "leaseProjectId": "prj_alpha" },
+      "expected": { "decision": "allow", "mode": "continuation", "originalRequestId": "idx_123", "nextAction": null }
+    },
+    {
+      "id": "trigger-restart-without-origin",
+      "description": "Restart is not an independent indexing trigger.",
+      "input": { "trigger": "restart", "projectId": "prj_alpha" },
+      "expected": { "decision": "deny", "code": "ORIGINAL_TRIGGER_REQUIRED", "nextAction": null }
+    }
+  ]
+}
