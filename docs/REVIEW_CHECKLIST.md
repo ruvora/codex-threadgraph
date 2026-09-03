@@ -49,6 +49,6 @@
 - [x] Navigation sends no prompt.
 - [x] Context Pack excludes execution permissions.
 - [ ] Visual layout and performance budgets require a tested prototype.
-- [ ] Host protocol compatibility requires a real Codex forward test.
+- [x] Stable `thread/list` and `thread/read` behavior is verified against Codex 0.152.1 without loading or starting a thread.
 
 No unchecked item blocks the design baseline. Each unchecked item is deliberately assigned to an implementation gate and must be resolved before that gate exits.
