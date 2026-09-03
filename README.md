@@ -47,14 +47,22 @@ The first release intentionally performs no background crawling and requires no 
 
 - [Product direction](./docs/PRODUCT_DIRECTION.md)
 - [Architecture](./docs/ARCHITECTURE.md)
+- [Complete design index](./docs/README.md)
 - [Graph model contract](./docs/contracts/GRAPH_MODEL.md)
+- [Source ingestion contract](./docs/contracts/SOURCE_INGESTION.md)
 - [Inference and authority contract](./docs/contracts/INFERENCE_AND_AUTHORITY.md)
+- [Selection and specialization contract](./docs/contracts/SELECTION_AND_SPECIALIZATION.md)
+- [State and persistence contract](./docs/contracts/STATE_AND_PERSISTENCE.md)
 - [Privacy and indexing contract](./docs/contracts/PRIVACY_AND_INDEXING.md)
+- [Host and navigation contract](./docs/contracts/HOST_AND_NAVIGATION.md)
+- [Graph experience contract](./docs/contracts/GRAPH_EXPERIENCE.md)
+- [ThreadHub interoperability contract](./docs/contracts/THREADHUB_INTEROP.md)
+- [Implementation gates](./docs/IMPLEMENTATION_GATES.md)
 - [Roadmap](./ROADMAP.md)
 
 ## Status
 
-`0.1.0` design baseline and read-only skill scaffold. A persistent index, MCP server, and interactive graph application are planned but are not advertised as implemented.
+`0.1.0` design baseline and read-only skill scaffold. Domain contracts and G0–G8 implementation gates are documented. A persistent index, MCP server, and interactive graph application are planned but are not advertised as implemented.
 
 ## Author
 

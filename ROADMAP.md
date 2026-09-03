@@ -5,6 +5,9 @@
 - [x] Product boundary and relationship model
 - [x] Read-only discovery skill
 - [x] Evidence, inference, authority, and privacy contracts
+- [x] Source ingestion, immutable revisions, state, and recovery contracts
+- [x] Selection, specialization, host navigation, UI, and ThreadHub boundaries
+- [x] ADRs, review checklist, and G0–G8 implementation gates
 - [ ] Real thread-list and thread-read forward test
 
 ## 0.2 — Local persistent graph

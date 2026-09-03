@@ -32,3 +32,31 @@ ThreadGraph must remain useful without ThreadHub. A later optional adapter may e
 ## First implementation boundary
 
 Version 0.1 uses explicit, on-demand scope and host-provided thread listing and reading. It stores no background crawler and uses no external embedding provider. Persistence and interactive graph UI require separate contracts before implementation.
+
+## Canonical flow
+
+```text
+Scope Request
+  -> Source Adapter
+  -> immutable Observations
+  -> extracted Evidence and Claims
+  -> exact and candidate Relations
+  -> evidence-closure validation
+  -> atomic Graph Revision publication
+  -> Goal Query
+  -> immutable Selection Report
+  -> evidence inspection or native navigation
+```
+
+Source ingestion and graph publication are separate from queries. A query reads one published revision and cannot trigger an unbounded scope expansion. Navigation is separate from recommendation and starts no Turn.
+
+## Failure boundaries
+
+- Host access failure changes source availability, not native history.
+- Extraction failure leaves the previous graph revision current.
+- Inference failure cannot remove exact relationships.
+- Query failure cannot mutate the graph.
+- Navigation failure cannot choose a substitute thread.
+- ThreadHub import failure cannot mutate the Graph Registry.
+
+Detailed behavior is defined by the contracts in [the design index](./README.md).
