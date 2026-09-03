@@ -2,8 +2,8 @@
 
 ## Default behavior
 
-- Index only an explicit project, explicit thread selection, or a clearly requested bounded scope.
-- Perform indexing on demand rather than continuously in the background.
+- In the first implementation, index only the canonical project whose graph is being opened or explicitly refreshed.
+- Update indexing only on the first graph open or an explicit user refresh; never continuously in the background.
 - Store derived local records and digests; do not duplicate full transcripts by default.
 - Do not send thread content to an external embedding or analytics service by default.
 - Do not expose private thread content in graph labels, logs, or exported artifacts without user intent.

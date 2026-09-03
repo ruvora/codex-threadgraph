@@ -10,6 +10,8 @@ The first view answers three questions:
 
 It does not default to an unfiltered visualization of every known node.
 
+Opening a project graph with no published revision starts its one-time initial indexing. Later opens render the current revision without updating it. A visible Refresh action is the only way to request another indexing revision in the first implementation.
+
 ## Visual semantics
 
 - exact, extracted, and inferred edges have distinct visual treatments;
@@ -32,6 +34,7 @@ Version 0.1 permits only:
 
 - change graph filters;
 - issue a read-only Goal Query;
+- explicitly refresh the selected project graph;
 - inspect evidence;
 - navigate to a native thread;
 - export an explicitly selected Context Pack when implemented.
@@ -41,3 +44,5 @@ Execution, archive, rename, role mutation, persistent specialization acceptance,
 ## Empty and failure states
 
 The view distinguishes no threads in scope, no indexed evidence, no relationships, unreadable sources, indexing in progress, indexing failed, and a genuinely empty query result. Each state provides a read-only next action.
+
+Stale state shows the current observation cutoff and Refresh action. It must not imply that opening, searching, or querying has refreshed the graph.

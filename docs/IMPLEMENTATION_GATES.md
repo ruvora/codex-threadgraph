@@ -5,6 +5,8 @@ Implementation proceeds only after the preceding gate has durable failure-path t
 ## G0 — Contract fixtures
 
 - malformed scope and out-of-scope reference rejection;
+- indexing starts only for first project-graph open and explicit refresh;
+- Goal Query, search, inspection, navigation, app launch, TTL, and ThreadHub activity cannot start indexing;
 - mutable title cannot replace native identity;
 - exact, extracted, and inferred evidence remain distinct;
 - contradiction and supersession false-positive fixtures;
@@ -26,6 +28,7 @@ Exit: no current edge exists without a complete evidence path.
 - native thread list and bounded read adapter;
 - host and project identity normalization;
 - explicit scope and resource budgets;
+- idempotent initial-open and coalesced explicit-refresh triggers;
 - unreadable, missing, and deleted distinction;
 - untrusted-content isolation.
 

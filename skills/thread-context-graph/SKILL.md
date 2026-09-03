@@ -9,16 +9,19 @@ Map relationships between Codex threads within the user's requested scope.
 
 ## Workflow
 
-1. Resolve the scope from an explicit project, explicit thread set, or bounded user request. Do not crawl unrelated threads.
-2. Use available native thread listing and reading capabilities without opening or mutating conversations.
-3. Separate observed lineage and metadata from extracted statements and semantic inference.
-4. Build nodes and edges according to [the graph contract](references/graph-contract.md).
-5. For a selection request, rank candidates against the stated goal and explain evidence, freshness, conflicts, missing context, and confidence.
-6. Navigate to a thread only when the user asks to open or select it and the host provides native navigation.
+1. Resolve the canonical project whose graph the user is viewing. Do not crawl unrelated projects or threads.
+2. Update the index only when this is the project's first graph open with no published revision, or when the user explicitly requests refresh.
+3. For search, selection, inspection, and navigation, read the current published Graph Revision without updating it. Report missing or stale data with the appropriate next action.
+4. During an allowed update, use available native thread listing and bounded reading capabilities without opening or mutating conversations.
+5. Separate observed lineage and metadata from extracted statements and semantic inference.
+6. Build nodes and edges according to [the graph contract](references/graph-contract.md).
+7. For a selection request, rank candidates against the stated goal and explain evidence, freshness, conflicts, missing context, and confidence.
+8. Navigate to a thread only when the user asks to open or select it and the host provides native navigation.
 
 ## Constraints
 
 - Remain read-only. Do not start Turns, resume threads, archive threads, modify projects, or invoke an orchestrator.
+- Do not refresh because of a Goal Query, search, node selection, navigation, application launch, elapsed time, thread creation, or ThreadHub activity.
 - Never treat similarity, role names, or specialization labels as authority.
 - Every relationship must have an inspectable evidence path. Label model-derived edges as inferred.
 - Avoid reproducing full private transcripts. Use concise derived summaries and source references.

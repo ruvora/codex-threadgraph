@@ -2,7 +2,9 @@
 
 ## Goal query
 
-A Goal Query records the user's objective, scope revision, requested project boundary, required topics or constraints, observation cutoff, and query digest. It is read-only and cannot resume or create a thread.
+A Goal Query records the user's objective, scope revision, requested project boundary, required topics or constraints, observation cutoff, and query digest. It reads one already published Graph Revision. It cannot refresh the index, resume a thread, or create a thread.
+
+When no published revision exists, the outcome is `incomplete` with `nextAction=open_project_graph`. When the selected revision is stale, the report preserves that revision and returns `nextAction=refresh_project_graph` without performing the refresh.
 
 ## Eligibility gate
 

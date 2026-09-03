@@ -41,7 +41,7 @@ The `thread-context-graph` skill can:
 - suggest evidence-backed specialization labels;
 - navigate to a selected native Codex thread when the host supports it.
 
-The first release intentionally performs no background crawling and requires no external embedding service.
+The first release updates a project graph only on its first open or an explicit Refresh action. Searches, recommendations, inspection, and navigation read the current revision without updating it. It performs no background crawling and requires no external embedding service.
 
 ## Design documents
 

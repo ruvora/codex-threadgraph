@@ -31,7 +31,7 @@ ThreadGraph must remain useful without ThreadHub. A later optional adapter may e
 
 ## First implementation boundary
 
-Version 0.1 uses explicit, on-demand scope and host-provided thread listing and reading. It stores no background crawler and uses no external embedding provider. Persistence and interactive graph UI require separate contracts before implementation.
+Version 0.1 indexes one canonical project only when its graph is opened without an existing revision or when the user explicitly refreshes it. All queries, inspection, and navigation read a published revision without updating it. It stores no background crawler and uses no external embedding provider. Persistence and interactive graph UI require separate contracts before implementation.
 
 ## Canonical flow
 
@@ -48,7 +48,7 @@ Scope Request
   -> evidence inspection or native navigation
 ```
 
-Source ingestion and graph publication are separate from queries. A query reads one published revision and cannot trigger an unbounded scope expansion. Navigation is separate from recommendation and starts no Turn.
+Source ingestion and graph publication are separate from queries. A query reads one published revision and cannot trigger indexing or scope expansion. Navigation is separate from recommendation and starts no Turn.
 
 ## Failure boundaries
 

@@ -18,6 +18,8 @@ One local ThreadGraph service owns a versioned SQLite Graph Registry. It never o
 
 Full transcripts are not durable entities by default.
 
+Every indexing job records `triggerKind` as `initial_graph_open` or `explicit_refresh`. No other trigger value is supported in the first schema version. Restart recovery may continue the same previously authorized job but cannot create a new refresh request.
+
 ## State machines
 
 ### Index job

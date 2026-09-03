@@ -17,6 +17,8 @@
 ## Ingestion and privacy
 
 - [x] Scope is explicit and cannot self-expand.
+- [x] First development updates only on initial project-graph open and explicit refresh.
+- [x] Queries and navigation never update the graph.
 - [x] Thread content is untrusted data.
 - [x] Indexing is bounded, incremental, and local by default.
 - [x] Unreadable, missing, and deleted are distinct.

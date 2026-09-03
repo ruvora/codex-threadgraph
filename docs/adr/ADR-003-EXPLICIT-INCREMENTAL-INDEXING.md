@@ -4,7 +4,7 @@ Status: Accepted
 
 ## Decision
 
-Index only a project, thread set, or bounded query scope requested by the user. Store immutable observations and content digests, reuse unchanged ranges, and atomically publish graph revisions. Do not crawl all threads continuously.
+In the first implementation, index a canonical project only on its first graph open or an explicit user refresh. Store immutable observations and content digests, reuse unchanged ranges, and atomically publish graph revisions. Queries never update the index, and the product does not crawl threads continuously.
 
 ## Rationale
 
@@ -12,7 +12,8 @@ Thread history may be private, large, changing, or temporarily unreadable. Backg
 
 ## Consequences
 
-- Initial views may be incomplete until the user expands scope.
+- The first graph open may wait for initial indexing; subsequent opens are immediate reads of the published revision.
+- Stale query results remain visible until the user explicitly refreshes.
 - Partial and stale state must be visible.
 - Indexing budgets and invalidation are product contracts.
 - An external embedding provider is neither required nor used by default.
