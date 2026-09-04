@@ -4,9 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test test/g0/core-contract.test.mjs test/g0/fixture-corpus.test.mjs test/g1/domain-model.test.mjs",
+    "test": "node --test test/g0/core-contract.test.mjs test/g0/fixture-corpus.test.mjs test/g1/domain-model.test.mjs test/g2/source-adapter.test.mjs",
     "test:fixtures": "node --test test/g0/fixture-corpus.test.mjs",
     "test:g0": "node --test test/g0/core-contract.test.mjs test/g0/fixture-corpus.test.mjs",
-    "test:g1": "node --test test/g1/domain-model.test.mjs"
+    "test:g1": "node --test test/g1/domain-model.test.mjs",
+    "test:g2": "node --test test/g2/source-adapter.test.mjs"
   }
 }
