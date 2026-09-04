@@ -116,7 +116,7 @@ Evidence: [MCP Apps and large-graph verification v1](./evidence/LARGE_GRAPH_MCP_
 
 ## G8 — Optional ThreadHub adapter
 
-Status: producer-side Context Pack creation and validation implemented. An independent ThreadHub consumer compatibility run remains open.
+Status: complete. Producer export and an independent ThreadHub consumer validate the same public alpha contract without sharing code or storage. ThreadHub imports accepted content only as a candidate claim and creates no Context Snapshot or execution entity.
 
 - versioned, fingerprinted Context Pack;
 - explicit selection and export;
@@ -124,6 +124,8 @@ Status: producer-side Context Pack creation and validation implemented. An indep
 - independent failure and upgrade behavior.
 
 Exit: a forged, stale, conflicted, or unsupported pack cannot influence execution planning.
+
+Evidence: [Independent ThreadHub consumer verification v1](./evidence/THREADHUB_CONSUMER_V1.md).
 
 ## G9 — End-to-end indexing session
 

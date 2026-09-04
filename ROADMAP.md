@@ -39,6 +39,6 @@
 ## 0.4 — Optional ThreadHub adapter
 
 - [x] Versioned Context Pack export and producer validation
-- Explicit user-selected handoff
-- [ ] ThreadHub-side validation and provenance import
-- No shared database and no implicit execution authority
+- [x] Explicit user-selected handoff contract
+- [x] Independent ThreadHub-side validation and provenance-only import
+- [x] No shared database and no implicit execution authority

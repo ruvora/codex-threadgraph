@@ -48,6 +48,8 @@
 - [x] Evidence inspection and failure states are first-class.
 - [x] Navigation sends no prompt.
 - [x] Context Pack excludes execution permissions.
+- [x] ThreadHub independently verifies scope, producer, digest, content-addressed ID, freshness, conflicts, and missing sources before any Registry mutation.
+- [x] Accepted imports remain candidate provenance and cannot create a Context Snapshot or execution entity.
 - [x] The MCP Apps SVG/list prototype has bounded rendering and measured 5,000-node/10,000-relation latency, memory, payload, and privacy budgets.
 - [x] Stable `thread/list` and `thread/read` behavior is verified against Codex 0.152.1 without loading or starting a thread.
 
