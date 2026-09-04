@@ -141,3 +141,26 @@ test("G9 source preparation failure releases the writer lease", async () => {
   assert.equal(prepared.status, "prepared");
   registry.close();
 });
+
+test("G9 explicit refresh links a new revision to the current parent", async () => {
+  const { registry } = registryFixture();
+  const pipeline = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "/repo" });
+  const first = await pipeline.prepare({ triggerKind: "initial_graph_open", requestOrigin: "graph_open", observationCutoff: "2026-09-04T01:00:00.000Z" });
+  const firstResult = await pipeline.publish({ sessionId: first.sessionId, extractions: first.sources.map(extractionFor) });
+  const refresh = await pipeline.prepare({ triggerKind: "explicit_refresh", requestOrigin: "refresh_button", observationCutoff: "2026-09-04T02:00:00.000Z" });
+  const refreshResult = await pipeline.publish({ sessionId: refresh.sessionId, extractions: refresh.sources.map(extractionFor) });
+  assert.equal(refreshResult.graph.parentRevisionId, firstResult.revisionId);
+  assert.notEqual(refreshResult.revisionId, firstResult.revisionId);
+  registry.close();
+});
+
+test("G9 an expired prepared session cannot publish", async () => {
+  const { registry } = registryFixture();
+  const pipeline = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "/repo", sessionTtlMs: 20 });
+  const prepared = await pipeline.prepare({ triggerKind: "initial_graph_open", requestOrigin: "graph_open", observationCutoff: "2026-09-04T01:00:00.000Z" });
+  await new Promise((resolve) => setTimeout(resolve, 30));
+  await assert.rejects(pipeline.publish({ sessionId: prepared.sessionId, extractions: prepared.sources.map(extractionFor) }), { code: "INDEX_SESSION_EXPIRED" });
+  assert.equal(registry.getIndexSession(prepared.sessionId).status, "failed");
+  assert.equal(registry.currentRevision(prepared.scopeId), null);
+  registry.close();
+});

@@ -70,3 +70,21 @@ test("G3 backs up and transactionally upgrades an older registry", () => {
   assert.equal(reopened.prepare("SELECT name FROM sqlite_master WHERE name='index_sessions'").get().name, "index_sessions");
   reopened.close();
 });
+
+test("G3 rolls back revision, pointer, job, and session as one publication unit", () => {
+  const registry = new GraphRegistry(registryPath());
+  const firstLease = registry.acquireLease(scopeId, "worker-a", 60000);
+  const oldRevision = revision("a", "1");
+  registry.publish(oldRevision, firstLease);
+  const lease = registry.acquireLease(scopeId, "worker-a", 60000);
+  const jobId = registry.createJob({ scopeId, requestFingerprint: "sha256:request", triggerKind: "explicit_refresh" });
+  const sessionId = `idx_${"c".repeat(52)}`;
+  registry.createIndexSession({ sessionId, scopeId, jobId, requestFingerprint: "sha256:request", sourceDigest: "sha256:source", observationCutoff: "2026-09-04T00:00:00.000Z", payload: {}, lease, expiresAt: Date.now() + 60000 });
+  const nextRevision = revision("b", "2");
+  assert.throws(() => registry.publishIndexSession(sessionId, nextRevision, { faultAt: "after_pointer_update" }), { code: "INJECTED_PUBLICATION_FAILURE" });
+  assert.equal(registry.currentRevision(scopeId).id, oldRevision.id);
+  assert.equal(registry.getIndexSession(sessionId).status, "prepared");
+  assert.equal(registry.publishIndexSession(sessionId, nextRevision).status, "published");
+  assert.equal(registry.currentRevision(scopeId).id, nextRevision.id);
+  registry.close();
+});
