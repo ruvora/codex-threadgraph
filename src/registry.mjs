@@ -3,7 +3,7 @@ import { DatabaseSync } from "node:sqlite";
 import { randomUUID } from "node:crypto";
 import { immutableClone } from "./domain/immutable.mjs";
 
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 const jobStates = new Set(["queued", "reading", "extracting", "linking", "validating", "published", "failed", "cancelled", "interrupted"]);
 
 function fail(code, message, details = {}) {
@@ -70,7 +70,19 @@ export class GraphRegistry {
           expires_at INTEGER NOT NULL,
           FOREIGN KEY(scope_id) REFERENCES scopes(scope_id) ON DELETE CASCADE
         );
-        PRAGMA user_version = 1;
+      `);
+      if (from <= 1) this.#db.exec(`
+        CREATE TABLE IF NOT EXISTS context_exports (
+          pack_id TEXT PRIMARY KEY,
+          scope_id TEXT NOT NULL,
+          graph_revision_id TEXT NOT NULL,
+          content_digest TEXT NOT NULL,
+          manifest_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          UNIQUE(graph_revision_id, content_digest),
+          FOREIGN KEY(scope_id) REFERENCES scopes(scope_id) ON DELETE CASCADE
+        );
+        PRAGMA user_version = 2;
       `);
       this.#db.exec("COMMIT");
     } catch (error) {
@@ -152,6 +164,15 @@ export class GraphRegistry {
       .run(new Date(nowMs).toISOString()).changes;
     const released = this.#db.prepare("DELETE FROM writer_leases WHERE expires_at <= ?").run(nowMs).changes;
     return Object.freeze({ interrupted, released });
+  }
+
+  recordExport(pack, now = new Date().toISOString()) {
+    this.ensureScope(pack.scopeId, now);
+    this.#db.prepare("INSERT OR IGNORE INTO context_exports(pack_id, scope_id, graph_revision_id, content_digest, manifest_json, created_at) VALUES (?, ?, ?, ?, ?, ?)")
+      .run(pack.packId, pack.scopeId, pack.graphRevisionId, pack.contentDigest, JSON.stringify(pack), now);
+    const row = this.#db.prepare("SELECT manifest_json FROM context_exports WHERE graph_revision_id=? AND content_digest=?")
+      .get(pack.graphRevisionId, pack.contentDigest);
+    return immutableClone(JSON.parse(row.manifest_json));
   }
 
   deleteThread(scopeId, threadId) {
