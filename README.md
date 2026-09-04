@@ -43,6 +43,8 @@ The `thread-context-graph` skill can:
 
 The first release updates a project graph only on its first open or an explicit Refresh action. Searches, recommendations, inspection, and navigation read the current revision without updating it. It performs no background crawling and requires no external embedding service.
 
+The alpha runtime requires Node.js 24 or newer for the built-in SQLite Registry. The MCP server stores its local database under `$CODEX_HOME/threadgraph/graph.db` unless `THREADGRAPH_REGISTRY_PATH` is explicitly configured.
+
 ## Design documents
 
 - [Product direction](./docs/PRODUCT_DIRECTION.md)
@@ -68,7 +70,9 @@ The first release updates a project graph only on its first open or an explicit 
 
 ## Status
 
-`0.1.0` design baseline with a passing G0 contract kernel and G1 immutable domain model. Strict Source and Extraction Envelopes, typed IDs, evidence closure, deterministic Graph Revisions, and relation lifecycle are implemented. The native source adapter, persistent index, MCP server, and interactive graph application remain planned and are not advertised as implemented.
+`0.1.0` alpha implementation with executable G0–G8 contract coverage. It includes scoped native-source adaptation, immutable graph construction, a versioned SQLite Registry, deterministic extraction and inference gates, explainable selection, a read-only MCP server, an accessible graph view, and validated Context Pack export.
+
+The implementation is not yet a stable release. G5/G6 corpus calibration, large-scope G7 performance measurements, live Codex packaging, and an independent ThreadHub consumer test remain release gates. The repository does not claim those checks have passed.
 
 ## Author
 

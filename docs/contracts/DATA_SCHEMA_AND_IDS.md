@@ -30,7 +30,7 @@ id        = thr_ptb37vxwbn6pfjteocmhhn5fdmzfg7ilunakyokctdozld5mzrha
 | Graph Revision | `grv_` + hash of scope, parent revision, observation cutoff, policies, sorted current node/edge revision IDs |
 | Goal Query | `qry_` + hash of graph revision, normalized goal, requirements, query policy |
 | Selection Report | `sel_` + hash of query ID, candidate vector digest, selection policy |
-| Export | `ctx_` + hash of graph revision, selected evidence IDs, export policy |
+| Export | `ctx_` + hash of graph revision, selected claim/evidence IDs, stated purpose, export policy |
 
 Graph nodes use these logical identity kinds: `project` → Project ID, `thread` → Thread ID, `topic` → Semantic Entity ID, and `decision`, `constraint`, `artifact`, and `result` → Claim ID. The node kind and ID prefix must agree; a merely well-formed ID from another kind is rejected.
 
