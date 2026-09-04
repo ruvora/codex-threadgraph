@@ -9,9 +9,11 @@ G0 was established as a red baseline before the contract kernel existed. The bas
 - `npm run test:g9` verifies the durable prepare/extract/publish session and complete pipeline composition.
 - `npm run test:g10` verifies temporary-source scrubbing and explicitly confirmed indexed-thread deletion.
 - `npm run test:g11` verifies MCP Apps packaging, bounded rendering, large-graph budgets, and UI privacy.
+- `npm run test:g12` verifies maximum initial-index budgets and complete metadata coverage under text exhaustion.
 - `npm run test:calibration` evaluates the versioned, sanitized held-out corpus against every G5/G6 promotion threshold.
 - `npm run calibrate` emits the full reproducible calibration report, including language slices and recall.
 - `npm run benchmark:graph` emits reproducible 5,000-node and 10,000-edge view measurements.
+- `npm run benchmark:index` emits the maximum initial-index resource and coverage report.
 - `npm test` runs the complete contract and implementation suite.
 
 Do not weaken an expected result merely to turn the suite green. A contract change requires the governing design document, fixture, and rationale to change together.

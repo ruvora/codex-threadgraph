@@ -32,7 +32,7 @@ Exit: no current edge exists without a complete evidence path.
 
 ## G2 — Scoped source adapter
 
-Status: core implementation complete. Live installed-plugin compatibility remains part of the release E2E gate.
+Status: deterministic gate complete. Scope denial, side-effect detection, partial coverage, and maximum 100-thread, 12-read, 120,000-character, and 1,000-candidate budgets are executable and measured. Live model-token accounting remains part of the final installed graph-open E2E when the host exposes it.
 
 - native thread list and bounded read adapter;
 - host and project identity normalization;
@@ -42,6 +42,8 @@ Status: core implementation complete. Live installed-plugin compatibility remain
 - untrusted-content isolation.
 
 Exit: an out-of-scope thread cannot be read even when referenced by indexed content.
+
+Evidence: [Initial indexing budget verification v1](./evidence/INDEX_BUDGET_V1.md).
 
 ## G3 — Persistent local Registry
 

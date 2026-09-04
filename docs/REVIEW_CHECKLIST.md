@@ -24,7 +24,7 @@
 - [x] Thread content is untrusted data.
 - [x] Indexing is bounded, incremental, and local by default.
 - [x] Unreadable, missing, and deleted are distinct.
-- [ ] Default numeric indexing budgets require measurement before acceptance.
+- [x] Default numeric indexing budgets have a saturated 100-thread/12-read/120,000-character/1,000-pair fixture and recorded measurements.
 - [x] Version 0.1 explicitly relies on OS account and volume protection, enforces owner-only Registry files on POSIX, and does not claim application-level encryption.
 
 ## Selection and specialization

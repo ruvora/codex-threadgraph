@@ -14,6 +14,7 @@
 - [x] Calibrated extraction-boundary, normalization, relation, and selection fixture corpus
 - [x] Real thread-list and thread-read forward test against Codex 0.152.1
 - [x] Installed-cache MCP discovery and real-scope indexing E2E
+- [x] Maximum initial-index resource and coverage budget verification
 - [ ] New-task Codex desktop plugin discovery and graph-open E2E
 
 ## 0.2 — Local persistent graph

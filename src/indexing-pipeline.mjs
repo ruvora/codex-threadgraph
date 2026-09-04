@@ -130,12 +130,12 @@ export class IndexingPipeline {
       for (const [index, member] of members.entries()) {
         if (index < this.#budget.maxDeepReads && member.availability === "readable") {
           const read = await adapter.read(member.nativeThreadId, request.observationCutoff);
-          if (read.schemaVersion) {
+          if (read.schemaVersion && read.items.length > 0) {
             sources.push(read);
             semanticSourceIds.push(read.threadId);
             continue;
           }
-          sources.push(metadataEnvelope(read, request.observationCutoff));
+          sources.push(metadataEnvelope(member, request.observationCutoff));
         } else sources.push(metadataEnvelope(member, request.observationCutoff));
       }
       const sourceDigest = fingerprint("index-sources/1", sources);
