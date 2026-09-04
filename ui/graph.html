@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Codex ThreadGraph</title>
+<style>
+body{font:16px/1.5 system-ui;margin:0;color:#182026;background:#f7f8fa}main{max-width:1100px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;gap:16px;align-items:center}.grid{display:grid;grid-template-columns:2fr 1fr;gap:18px}.panel{background:white;border:1px solid #d8dee4;border-radius:12px;padding:18px}.edge{border-left:4px solid #4353ff;padding:10px;margin:8px 0}.edge.extracted{border-left-style:double}.edge.inferred{border-left-style:dashed}button{font:inherit;padding:8px 12px}@media(max-width:760px){.grid{grid-template-columns:1fr}}
+</style></head>
+<body><main><header><div><h1>Codex ThreadGraph</h1><p id="state">Load a published graph to inspect relationships.</p></div><button id="refresh" type="button">Refresh explicitly</button></header><div class="grid"><section class="panel" aria-labelledby="nodes-title"><h2 id="nodes-title">Threads and context</h2><div id="nodes"></div></section><aside class="panel" aria-labelledby="relations-title"><h2 id="relations-title">Relationships</h2><div id="edges"></div></aside></div></main>
+<script>
+const render=model=>{state.textContent=model.state+(model.observationCutoff?` · observed ${model.observationCutoff}`:"");nodes.replaceChildren(...model.nodes.map(n=>Object.assign(document.createElement("button"),{textContent:`${n.kind}: ${n.label}`,type:"button"})));edges.replaceChildren(...model.edges.map(e=>{const d=document.createElement("div");d.className=`edge ${e.evidenceClass}`;d.textContent=e.accessibleLabel;d.tabIndex=0;return d}))};
+addEventListener("message",event=>{if(event.data?.type==="threadgraph:view")render(event.data.model)});refresh.addEventListener("click",()=>parent.postMessage({type:"threadgraph:explicit-refresh"},"*"));
+</script></body></html>

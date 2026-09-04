@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "codex_threadgraph": {
+      "command": "./scripts/launch_threadgraph_mcp",
+      "args": ["./server/threadgraph-mcp.mjs"],
+      "cwd": ".",
+      "enabled": true,
+      "env_vars": ["CODEX_MCP_NODE_PATH", "THREADGRAPH_REGISTRY_PATH"],
+      "startup_timeout_sec": 10,
+      "tool_timeout_sec": 30
+    }
+  }
+}
