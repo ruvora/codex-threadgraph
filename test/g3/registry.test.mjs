@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
-import { mkdtempSync } from "node:fs";
+import { existsSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
 import { GraphRegistry } from "../../src/registry.mjs";
 
@@ -53,4 +54,18 @@ test("G3 rejects unsupported triggers and deletes a whole scope", () => {
   assert.equal(registry.deleteScope(scopeId), true);
   assert.equal(registry.currentRevision(scopeId), null);
   registry.close();
+});
+
+test("G3 backs up and transactionally upgrades an older registry", () => {
+  const path = registryPath();
+  const old = new DatabaseSync(path);
+  old.exec("CREATE TABLE scopes(scope_id TEXT PRIMARY KEY, current_revision_id TEXT, updated_at TEXT NOT NULL); PRAGMA user_version = 1;");
+  old.close();
+  const registry = new GraphRegistry(path);
+  registry.close();
+  assert.equal(existsSync(`${path}.v1.backup`), true);
+  const reopened = new DatabaseSync(path);
+  assert.equal(reopened.prepare("PRAGMA user_version").get().user_version, 2);
+  assert.equal(reopened.prepare("SELECT name FROM sqlite_master WHERE name='context_exports'").get().name, "context_exports");
+  reopened.close();
 });

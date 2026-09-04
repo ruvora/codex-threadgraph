@@ -10,11 +10,14 @@ test("G8 creates deterministic provenance-only Context Packs", () => {
   assert.deepEqual(first, second);
   assert.match(first.packId, /^ctx_/);
   assert.equal(validateContextPack(first, { scopeId: "scope", currentTime: "2026-09-05T00:00:00.000Z" }).executionAuthority, false);
+  assert.notEqual(createContextPack({ ...input, purpose: "different purpose" }).packId, first.packId);
 });
 
 test("G8 requires explicit selection and forbids execution authority", () => {
   assert.throws(() => createContextPack({ ...input, explicitSelection: false }), { code: "CONTEXT_PACK_SELECTION_REQUIRED" });
   assert.throws(() => createContextPack({ ...input, derivedContent: { permissions: ["write"] } }), { code: "CONTEXT_PACK_AUTHORITY_FORBIDDEN" });
+  const forgedAuthority = { ...createContextPack(input), derivedContent: { permissions: ["write"] } };
+  assert.equal(validateContextPack(forgedAuthority, { scopeId: "scope" }).code, "CONTEXT_PACK_AUTHORITY_FORBIDDEN");
 });
 
 test("G8 rejects forged, unsupported, stale, scoped, and conflicted packs", () => {

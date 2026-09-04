@@ -37,13 +37,13 @@ export function createContextPack(input, registry) {
   walk(input);
   const preimage = packPreimage(input);
   const contentDigest = fingerprint("threadgraph-context-pack-content/1", preimage);
-  const packId = contentAddressedId("ctx_", "codex-threadgraph/context-pack-id/1", [input.graphRevisionId, fingerprint("context-pack-selection/1", { claims: preimage.selectedClaimIds, evidence: preimage.selectedEvidenceIds }), "context-pack/1-alpha"]);
+  const packId = contentAddressedId("ctx_", "codex-threadgraph/context-pack-id/1", [input.graphRevisionId, fingerprint("context-pack-selection/1", { claims: preimage.selectedClaimIds, evidence: preimage.selectedEvidenceIds, purpose: preimage.purpose }), "context-pack/1-alpha"]);
   const pack = immutableClone({ packId, ...preimage, contentDigest });
   return registry ? registry.recordExport(pack, input.generatedAt) : pack;
 }
 
 export function validateContextPack(pack, { scopeId, supportedVersions = [schemaVersion], currentTime, maxAgeMs = 30 * 24 * 60 * 60 * 1000, allowConflicts = false } = {}) {
-  walk(pack);
+  try { walk(pack); } catch (error) { return immutableClone({ decision: "reject", code: error.code }); }
   if (!supportedVersions.includes(pack?.schemaVersion)) return immutableClone({ decision: "reject", code: "CONTEXT_PACK_VERSION_UNSUPPORTED" });
   if (pack.scopeId !== scopeId) return immutableClone({ decision: "reject", code: "CONTEXT_PACK_SCOPE_MISMATCH" });
   const expectedDigest = fingerprint("threadgraph-context-pack-content/1", packPreimage(pack));
@@ -55,5 +55,5 @@ export function validateContextPack(pack, { scopeId, supportedVersions = [schema
 }
 
 function contentId(pack) {
-  return contentAddressedId("ctx_", "codex-threadgraph/context-pack-id/1", [pack.graphRevisionId, fingerprint("context-pack-selection/1", { claims: [...pack.selectedClaimIds].sort(), evidence: [...pack.selectedEvidenceIds].sort() }), "context-pack/1-alpha"]);
+  return contentAddressedId("ctx_", "codex-threadgraph/context-pack-id/1", [pack.graphRevisionId, fingerprint("context-pack-selection/1", { claims: [...pack.selectedClaimIds].sort(), evidence: [...pack.selectedEvidenceIds].sort(), purpose: pack.purpose }), "context-pack/1-alpha"]);
 }
