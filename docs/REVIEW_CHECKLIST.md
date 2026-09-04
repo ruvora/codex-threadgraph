@@ -41,7 +41,7 @@
 - [x] Graph revisions are immutable and atomically published.
 - [x] Writer fencing, migrations, backups, and restart recovery are required.
 - [x] Deletion affects only the local graph and never native history.
-- [ ] Concrete schema version 1 tables and indexes belong in G3 implementation design.
+- [x] The versioned SQLite tables, indexes, session state, and migration path are implemented and tested.
 
 ## Experience and integration
 

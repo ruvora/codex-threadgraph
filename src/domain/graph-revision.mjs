@@ -13,7 +13,7 @@ const digestPattern = /^sha256:[0-9a-f]{64}$/;
 const graphKeys = new Set(["scopeId", "parentRevisionId", "observationCutoff", "policies", "observations", "evidenceItems", "nodes", "relations"]);
 const observationKeys = new Set(["id", "projectId", "threadId", "sourceRange", "contentDigest", "redactionVersion", "authorized", "observedAt"]);
 const evidenceKeys = new Set(["id", "observationId", "itemLocator", "contentDigest"]);
-const nodeKeys = new Set(["id", "kind", "scopeId", "canonicalSubjectKey", "lifecycle", "evidenceIds"]);
+const nodeKeys = new Set(["id", "kind", "scopeId", "canonicalSubjectKey", "lifecycle", "evidenceIds", "nativeThreadId"]);
 const relationKeys = new Set([
   "sourceId", "targetId", "kind", "evidenceClass", "evidenceIds", "confidenceBand", "explanation",
   "inferenceVersion", "alternatives", "policyVersion", "lifecycle",
@@ -71,6 +71,7 @@ function buildNodeRevision(node, input, evidenceMap, observationMap) {
   requireExactKeys(node, nodeKeys, "NODE_SCHEMA_INVALID");
   if (!nodeKinds.has(node.kind) || !isTypedId(node.id, nodeIdKinds[node.kind]) || node.scopeId !== input.scopeId) fail("NODE_SCHEMA_INVALID", "Node identity, kind, or scope is invalid");
   if (node.lifecycle !== "current" || typeof node.canonicalSubjectKey !== "string" || node.canonicalSubjectKey.length === 0) fail("NODE_SCHEMA_INVALID", "Current node fields are invalid");
+  if ((node.kind === "thread") !== (typeof node.nativeThreadId === "string" && node.nativeThreadId.length > 0)) fail("NODE_SCHEMA_INVALID", "Only thread nodes require nativeThreadId");
   ensureEvidenceClosure(node.evidenceIds, evidenceMap, observationMap);
   const evidenceDigest = fingerprint("node-evidence/1", [...node.evidenceIds].sort());
   const attributesDigest = fingerprint("node-attributes/1", {

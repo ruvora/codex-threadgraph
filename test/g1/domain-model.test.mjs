@@ -86,7 +86,7 @@ function graphInput(overrides = {}) {
     }],
     nodes: [
       { id: projectId, kind: "project", scopeId: projectId, canonicalSubjectKey: projectId, lifecycle: "current", evidenceIds: [evidenceId] },
-      { id: threadId, kind: "thread", scopeId: projectId, canonicalSubjectKey: threadId, lifecycle: "current", evidenceIds: [evidenceId] },
+      { id: threadId, kind: "thread", nativeThreadId: "native-123", scopeId: projectId, canonicalSubjectKey: threadId, lifecycle: "current", evidenceIds: [evidenceId] },
       { id: topicId, kind: "topic", scopeId: projectId, canonicalSubjectKey: "topic:immutable-graph-revisions", lifecycle: "current", evidenceIds: [evidenceId] },
     ],
     relations: [{
@@ -120,6 +120,7 @@ test("G1 typed IDs distinguish entity kinds", async () => {
   assert.equal(isTypedId(projectId, "project"), true);
   assert.equal(isTypedId(threadId, "thread"), true);
   assert.equal(isTypedId(threadId, "project"), false);
+  assert.equal(isTypedId(`idx_${"a".repeat(52)}`, "indexSession"), true);
   assert.throws(() => assertTypedId("thr_bad", "thread"), { code: "ID_INVALID" });
 });
 

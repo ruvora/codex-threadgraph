@@ -28,6 +28,7 @@ id        = thr_ptb37vxwbn6pfjteocmhhn5fdmzfg7ilunakyokctdozld5mzrha
 | Logical Relation | `rel_` + hash of scope, source ID, target ID, relation kind |
 | Relation Revision | `rlv_` + hash of logical relation, evidence digest, policy version, lifecycle |
 | Graph Revision | `grv_` + hash of scope, parent revision, observation cutoff, policies, sorted current node/edge revision IDs |
+| Indexing Session | `idx_` + hash of immutable request fingerprint and aggregate bounded-source digest |
 | Goal Query | `qry_` + hash of graph revision, normalized goal, requirements, query policy |
 | Selection Report | `sel_` + hash of query ID, candidate vector digest, selection policy |
 | Export | `ctx_` + hash of graph revision, selected claim/evidence IDs, stated purpose, export policy |

@@ -21,6 +21,7 @@
 - [x] Incremental digest reuse and dependent invalidation planning
 - [x] Deterministic exact-edge extraction
 - [x] Bounded semantic inference implementation
+- [x] Durable end-to-end prepare, extract, validate, and publish pipeline
 - [ ] Held-out inference and selection calibration
 - [ ] Fine-grained source retention and thread deletion UX
 

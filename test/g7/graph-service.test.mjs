@@ -31,6 +31,22 @@ test("G7 query and inspection read only the current revision", () => {
   assert.equal(reads, 2);
 });
 
+test("G7 derives a goal-relative candidate from the published graph", () => {
+  const selectable = {
+    ...revision,
+    scopeId,
+    nodes: [...revision.nodes, { id: "topic", kind: "topic", canonicalSubjectKey: "label:topic:database", lifecycle: "current" }],
+    relations: [{ relationKey: "ref", sourceId: "t", targetId: "topic", kind: "references", evidenceClass: "extracted", evidenceIds: ["e"] }],
+    observations: [{ id: "o", observedAt: "2026-09-04T00:00:00.000Z" }],
+  };
+  const service = new GraphService({ registry: registry(selectable) });
+  const report = service.query(scopeId, { objective: "Continue database design", requirements: [{ subject: "database", importance: "required", sourceSpan: "database" }] });
+  assert.equal(report.result, "recommended");
+  assert.equal(report.candidates[0].threadId, "t");
+  assert.equal(report.candidates[0].dimensions.goalRelevance, 1);
+  assert.equal(report.candidates[0].dimensions.evidenceCoverage, 0.85);
+});
+
 test("G7 navigation requires explicit action and sends no prompt", async () => {
   const calls = [];
   const service = new GraphService({ registry: registry(), navigator: { navigateToThread: async (value) => { calls.push(value); } } });
@@ -40,7 +56,7 @@ test("G7 navigation requires explicit action and sends no prompt", async () => {
   assert.equal(result.promptSent, false);
 });
 
-test("G7 MCP server advertises only read-only graph tools", async () => {
+test("G7 MCP server exposes only local graph tools and no native execution authority", async () => {
   const registryPath = join(mkdtempSync(join(tmpdir(), "threadgraph-mcp-")), "graph.db");
   const child = spawn(process.execPath, ["server/threadgraph-mcp.mjs"], { cwd: process.cwd(), env: { ...process.env, THREADGRAPH_REGISTRY_PATH: registryPath }, stdio: ["pipe", "pipe", "inherit"] });
   const lines = readline.createInterface({ input: child.stdout });
@@ -56,6 +72,6 @@ test("G7 MCP server advertises only read-only graph tools", async () => {
   });
   child.kill("SIGTERM");
   const names = responses.find((item) => item.id === 2).result.tools.map((item) => item.name);
-  assert.deepEqual(names, ["threadgraph_get_graph", "threadgraph_inspect_evidence", "threadgraph_select_thread"]);
+  assert.deepEqual(names, ["threadgraph_get_graph", "threadgraph_inspect_evidence", "threadgraph_select_thread", "threadgraph_prepare_index", "threadgraph_publish_index", "threadgraph_cancel_index"]);
   assert.equal(names.some((name) => /start|resume|send|execute/.test(name)), false);
 });
