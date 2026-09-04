@@ -72,6 +72,6 @@ test("G7 MCP server exposes only local graph tools and no native execution autho
   });
   child.kill("SIGTERM");
   const names = responses.find((item) => item.id === 2).result.tools.map((item) => item.name);
-  assert.deepEqual(names, ["threadgraph_get_graph", "threadgraph_inspect_evidence", "threadgraph_select_thread", "threadgraph_prepare_index", "threadgraph_publish_index", "threadgraph_cancel_index"]);
+  assert.deepEqual(names, ["threadgraph_get_graph", "threadgraph_inspect_evidence", "threadgraph_select_thread", "threadgraph_prepare_index", "threadgraph_publish_index", "threadgraph_cancel_index", "threadgraph_get_retention", "threadgraph_preview_thread_deletion", "threadgraph_delete_thread_index"]);
   assert.equal(names.some((name) => /start|resume|send|execute/.test(name)), false);
 });

@@ -1,5 +1,7 @@
 import { buildGoalQuery, buildSelectionReport } from "./selection.mjs";
 import { deriveFreshness } from "./contracts/derivation.mjs";
+import { buildGraphRevision } from "./domain/graph-revision.mjs";
+import { fingerprint } from "./domain/hashing.mjs";
 import { immutableClone } from "./domain/immutable.mjs";
 
 function fail(code, message) { const error = new Error(message); error.code = code; throw error; }
@@ -31,6 +33,41 @@ export class GraphService {
     return buildSelectionReport(query, query.result === "incomplete" ? [] : deriveSelectionCandidates(graph.revision, query));
   }
 
+  getRetention(scopeId) { return this.#registry.retentionSummary(scopeId); }
+
+  previewThreadDeletion(scopeId, threadId) {
+    const graph = this.getGraph(scopeId);
+    if (graph.state !== "ready") return graph;
+    const plan = buildThreadDeletionRevision(graph.revision, threadId);
+    return immutableClone({
+      state: "confirmation_required",
+      scopeId,
+      threadId,
+      currentRevisionId: graph.revision.id,
+      confirmationToken: fingerprint("thread-deletion-confirmation/1", { scopeId, threadId, currentRevisionId: graph.revision.id, counts: plan.counts }),
+      counts: plan.counts,
+      nativeThreadHistoryChanged: false,
+      nextAction: "confirm_indexed_thread_deletion",
+    });
+  }
+
+  deleteIndexedThread(scopeId, threadId, { explicitUserAction = false, confirmationToken } = {}) {
+    if (explicitUserAction !== true) fail("THREAD_DELETE_AUTHORIZATION_REQUIRED", "Indexed thread deletion requires explicit user confirmation");
+    const graph = this.getGraph(scopeId);
+    if (graph.state !== "ready") return graph;
+    const plan = buildThreadDeletionRevision(graph.revision, threadId);
+    const expected = fingerprint("thread-deletion-confirmation/1", { scopeId, threadId, currentRevisionId: graph.revision.id, counts: plan.counts });
+    if (confirmationToken !== expected) fail("THREAD_DELETE_CONFIRMATION_STALE", "Deletion confirmation does not match the current graph revision");
+    const lease = this.#registry.acquireLease(scopeId, `retention-${process.pid}`, 30_000);
+    try {
+      const result = this.#registry.publishThreadDeletion(plan.revision, lease, threadId, plan.counts);
+      return immutableClone({ state: "deleted", ...result, nativeThreadHistoryChanged: false, nextAction: "view_updated_graph" });
+    } catch (error) {
+      this.#registry.releaseLease(lease);
+      throw error;
+    }
+  }
+
   async navigate(scopeId, threadId, { explicitUserAction = false } = {}) {
     if (explicitUserAction !== true) fail("NAVIGATION_AUTHORIZATION_REQUIRED", "Navigation requires explicit selection");
     const graph = this.getGraph(scopeId);
@@ -41,6 +78,63 @@ export class GraphService {
     const result = await this.#navigator.navigateToThread({ threadId: node.nativeThreadId });
     return immutableClone({ navigated: true, nativeThreadId: node.nativeThreadId, promptSent: false, result: result ?? null });
   }
+}
+
+function baseNode(node, evidenceIds) {
+  return {
+    id: node.id,
+    kind: node.kind,
+    scopeId: node.scopeId,
+    canonicalSubjectKey: node.canonicalSubjectKey,
+    lifecycle: node.lifecycle,
+    evidenceIds,
+    ...(node.nativeThreadId ? { nativeThreadId: node.nativeThreadId } : {}),
+  };
+}
+
+function baseRelation(relation) {
+  const result = {
+    sourceId: relation.sourceId,
+    targetId: relation.targetId,
+    kind: relation.kind,
+    evidenceClass: relation.evidenceClass,
+    evidenceIds: [...relation.evidenceIds],
+    policyVersion: relation.policyVersion,
+    lifecycle: relation.lifecycle,
+  };
+  for (const key of ["confidenceBand", "explanation", "inferenceVersion", "alternatives"]) if (relation[key] !== undefined) result[key] = structuredClone(relation[key]);
+  return result;
+}
+
+export function buildThreadDeletionRevision(current, threadId) {
+  const target = current.nodes.find((node) => node.id === threadId && node.kind === "thread");
+  if (!target) fail("THREAD_NOT_FOUND", "Thread is not present in the current indexed graph");
+  const removedObservationIds = new Set(current.observations.filter((observation) => observation.threadId === threadId).map((observation) => observation.id));
+  const removedEvidenceIds = new Set(current.evidenceItems.filter((evidence) => removedObservationIds.has(evidence.observationId)).map((evidence) => evidence.id));
+  const observations = current.observations.filter((observation) => !removedObservationIds.has(observation.id)).map((item) => ({ ...item }));
+  const evidenceItems = current.evidenceItems.filter((evidence) => !removedEvidenceIds.has(evidence.id)).map((item) => ({ ...item }));
+  const nodes = current.nodes.filter((node) => node.id !== threadId).map((node) => baseNode(node, node.evidenceIds.filter((id) => !removedEvidenceIds.has(id)))).filter((node) => node.evidenceIds.length > 0);
+  const retainedNodeIds = new Set(nodes.map((node) => node.id));
+  const relations = current.relations.filter((relation) => retainedNodeIds.has(relation.sourceId) && retainedNodeIds.has(relation.targetId) && !relation.evidenceIds.some((id) => removedEvidenceIds.has(id))).map(baseRelation);
+  const revision = buildGraphRevision({
+    scopeId: current.scopeId,
+    parentRevisionId: current.id,
+    observationCutoff: current.observationCutoff,
+    policies: current.policies,
+    observations,
+    evidenceItems,
+    nodes,
+    relations,
+  });
+  return immutableClone({
+    revision,
+    counts: {
+      removedObservations: current.observations.length - observations.length,
+      removedEvidenceItems: current.evidenceItems.length - evidenceItems.length,
+      removedNodes: current.nodes.length - nodes.length,
+      removedRelations: current.relations.length - relations.length,
+    },
+  });
 }
 
 function normalizedSubject(node) {

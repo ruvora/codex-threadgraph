@@ -38,6 +38,10 @@ Version 0.1 permits only:
 - inspect evidence;
 - navigate to a native thread;
 - export an explicitly selected Context Pack when implemented.
+- inspect local retention counts;
+- preview and explicitly confirm deletion of one thread's derived index data.
+
+The deletion dialog states that native Codex history is unchanged and shows affected observation, evidence, node, and relation counts before confirmation.
 
 Execution, archive, rename, role mutation, persistent specialization acceptance, and ThreadHub dispatch require separately contracted capabilities and are absent from the initial UI.
 

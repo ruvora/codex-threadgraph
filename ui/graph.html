@@ -1,11 +1,66 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Codex ThreadGraph</title>
-<style>
-body{font:16px/1.5 system-ui;margin:0;color:#182026;background:#f7f8fa}main{max-width:1100px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;gap:16px;align-items:center}.grid{display:grid;grid-template-columns:2fr 1fr;gap:18px}.panel{background:white;border:1px solid #d8dee4;border-radius:12px;padding:18px}.edge{border-left:4px solid #4353ff;padding:10px;margin:8px 0}.edge.extracted{border-left-style:double}.edge.inferred{border-left-style:dashed}button{font:inherit;padding:8px 12px}@media(max-width:760px){.grid{grid-template-columns:1fr}}
-</style></head>
-<body><main><header><div><h1>Codex ThreadGraph</h1><p id="state">Load a published graph to inspect relationships.</p></div><button id="refresh" type="button">Refresh explicitly</button></header><div class="grid"><section class="panel" aria-labelledby="nodes-title"><h2 id="nodes-title">Threads and context</h2><div id="nodes"></div></section><aside class="panel" aria-labelledby="relations-title"><h2 id="relations-title">Relationships</h2><div id="edges"></div></aside></div></main>
-<script>
-const render=model=>{state.textContent=model.state+(model.observationCutoff?` · observed ${model.observationCutoff}`:"");nodes.replaceChildren(...model.nodes.map(n=>Object.assign(document.createElement("button"),{textContent:`${n.kind}: ${n.label}`,type:"button"})));edges.replaceChildren(...model.edges.map(e=>{const d=document.createElement("div");d.className=`edge ${e.evidenceClass}`;d.textContent=e.accessibleLabel;d.tabIndex=0;return d}))};
-addEventListener("message",event=>{if(event.data?.type==="threadgraph:view")render(event.data.model)});refresh.addEventListener("click",()=>parent.postMessage({type:"threadgraph:explicit-refresh"},"*"));
-</script></body></html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Codex ThreadGraph</title>
+  <style>
+    body{font:16px/1.5 system-ui;margin:0;color:#182026;background:#f7f8fa}main{max-width:1100px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;gap:16px;align-items:center}.grid{display:grid;grid-template-columns:2fr 1fr;gap:18px}.panel{background:white;border:1px solid #d8dee4;border-radius:12px;padding:18px;margin-bottom:18px}.node{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #eaeef2;padding:10px 0}.node-actions{display:flex;gap:8px}.edge{border-left:4px solid #4353ff;padding:10px;margin:8px 0}.edge.extracted{border-left-style:double}.edge.inferred{border-left-style:dashed}.danger{color:#9b1c1c}.muted{color:#57606a}button{font:inherit;padding:8px 12px}dialog{max-width:520px;border:1px solid #d8dee4;border-radius:12px;padding:22px}dialog::backdrop{background:#0008}@media(max-width:760px){.grid{grid-template-columns:1fr}.node{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div><h1>Codex ThreadGraph</h1><p id="state">Load a published graph to inspect relationships.</p></div>
+      <button id="refresh" type="button">Refresh explicitly</button>
+    </header>
+    <div class="grid">
+      <section class="panel" aria-labelledby="nodes-title"><h2 id="nodes-title">Threads and context</h2><div id="nodes"></div></section>
+      <div>
+        <aside class="panel" aria-labelledby="relations-title"><h2 id="relations-title">Relationships</h2><div id="edges"></div></aside>
+        <aside class="panel" aria-labelledby="retention-title"><h2 id="retention-title">Local data</h2><p id="retention" class="muted">Retention details are not loaded.</p></aside>
+      </div>
+    </div>
+  </main>
+  <dialog id="delete-dialog" aria-labelledby="delete-title">
+    <h2 id="delete-title">Remove indexed thread data?</h2>
+    <p id="delete-impact"></p>
+    <p class="danger"><strong>The native Codex thread and its history will not be changed.</strong></p>
+    <div class="node-actions"><button id="delete-confirm" type="button" class="danger">Remove indexed data</button><button id="delete-cancel" type="button">Cancel</button></div>
+  </dialog>
+  <script>
+    let deletionPreview=null;
+    const post=(type,payload={})=>parent.postMessage({type,...payload},"*");
+    const render=model=>{
+      state.textContent=model.state+(model.observationCutoff?` · observed ${model.observationCutoff}`:"");
+      nodes.replaceChildren(...model.nodes.map(node=>{
+        const row=document.createElement("div");row.className="node";
+        const label=document.createElement("span");label.textContent=`${node.kind}: ${node.label}`;row.append(label);
+        if(node.kind==="thread"){
+          const actions=document.createElement("span");actions.className="node-actions";
+          const open=document.createElement("button");open.type="button";open.textContent="Open";open.addEventListener("click",()=>post("threadgraph:navigate",{threadId:node.id,explicitUserAction:true}));
+          const remove=document.createElement("button");remove.type="button";remove.textContent="Remove indexed data";remove.className="danger";remove.addEventListener("click",()=>post("threadgraph:preview-thread-deletion",{threadId:node.id}));
+          actions.append(open,remove);row.append(actions);
+        }
+        return row;
+      }));
+      edges.replaceChildren(...model.edges.map(edge=>{const item=document.createElement("div");item.className=`edge ${edge.evidenceClass}`;item.textContent=edge.accessibleLabel;item.tabIndex=0;return item}));
+    };
+    addEventListener("message",event=>{
+      if(event.data?.type==="threadgraph:view")render(event.data.model);
+      if(event.data?.type==="threadgraph:retention")retention.textContent=`${event.data.summary.currentThreadCount} indexed threads · ${event.data.summary.revisionCount} retained revisions · source text: temporary prepared sessions only`;
+      if(event.data?.type==="threadgraph:deletion-preview"){
+        deletionPreview=event.data.preview;
+        const counts=deletionPreview.counts;
+        document.getElementById("delete-impact").textContent=`This removes ${counts.removedNodes} nodes, ${counts.removedRelations} relationships, ${counts.removedEvidenceItems} evidence references, and ${counts.removedObservations} observations from the local index.`;
+        document.getElementById("delete-dialog").showModal();
+      }
+      if(event.data?.type==="threadgraph:thread-deleted"){document.getElementById("delete-dialog").close();deletionPreview=null}
+    });
+    refresh.addEventListener("click",()=>post("threadgraph:explicit-refresh",{explicitUserAction:true}));
+    document.getElementById("delete-cancel").addEventListener("click",()=>{document.getElementById("delete-dialog").close();deletionPreview=null});
+    document.getElementById("delete-confirm").addEventListener("click",()=>{if(deletionPreview)post("threadgraph:delete-thread-index",{threadId:deletionPreview.threadId,confirmationToken:deletionPreview.confirmationToken,explicitUserAction:true})});
+    post("threadgraph:ready");
+  </script>
+</body>
+</html>

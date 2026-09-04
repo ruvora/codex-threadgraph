@@ -17,6 +17,7 @@ Map relationships between Codex threads within the user's requested scope.
 6. Build nodes and edges according to [the graph contract](references/graph-contract.md).
 7. For a selection request, rank candidates against the stated goal and explain evidence, freshness, conflicts, missing context, and confidence.
 8. Navigate to a thread only when the user asks to open or select it and the host provides native navigation.
+9. For a retention request, inspect counts first. Preview indexed-thread deletion and show its impact before calling `threadgraph_delete_thread_index` with the exact current confirmation token and an explicit user action. Never describe this as deleting the native Codex thread.
 
 An indexing session is terminal after publication, cancellation, validation failure, or expiry. Do not reuse it or substitute a different source. If extraction cannot be completed, call `threadgraph_cancel_index`; never publish a partial semantic response. Do not include model-generated IDs, numeric confidence, execution instructions, or permissions in an Extraction Envelope.
 
@@ -24,7 +25,7 @@ For an allowed initial build or Refresh, read [the generation pipeline](../../do
 
 ## Constraints
 
-- Remain read-only. Do not start Turns, resume threads, archive threads, modify projects, or invoke an orchestrator.
+- Remain read-only with respect to Codex threads and projects. Do not start Turns, resume threads, archive threads, modify projects, or invoke an orchestrator. Local derived index data may change only for an explicitly authorized Refresh or retention action.
 - Do not refresh because of a Goal Query, search, node selection, navigation, application launch, elapsed time, thread creation, or ThreadHub activity.
 - Never treat similarity, role names, or specialization labels as authority.
 - Every relationship must have an inspectable evidence path. Label model-derived edges as inferred.

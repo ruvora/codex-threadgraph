@@ -25,7 +25,7 @@
 - [x] Bounded semantic inference implementation
 - [x] Durable end-to-end prepare, extract, validate, and publish pipeline
 - [x] Held-out inference and selection policy calibration
-- [ ] Fine-grained source retention and thread deletion UX
+- [x] Fine-grained source retention and preview-confirmed indexed-thread deletion UX
 
 ## 0.3 — Interactive graph
 

@@ -45,13 +45,15 @@ Exit: an out-of-scope thread cannot be read even when referenced by indexed cont
 
 ## G3 — Persistent local Registry
 
-Status: core implementation complete for versioned SQLite publication, fencing, backup migration, reopen, and interrupted-job recovery. Fine-grained source retention/deletion UX remains a release task.
+Status: complete for versioned SQLite publication, fencing, backup migration, reopen, interrupted-job recovery, terminal source scrubbing, retention inspection, and preview-confirmed indexed-thread deletion. Deletion publishes an invalidating revision and purges affected historical revisions and exports without modifying native Codex history.
 
 - versioned SQLite schema;
 - atomic publication and current revision pointer;
 - single-writer lease and fencing;
 - migration backup, reopen, and restart recovery;
 - thread, project, and full-index deletion.
+- terminal and expired-session source scrubbing;
+- revision-bound deletion preview and explicit confirmation.
 
 Exit: forced termination at every publication stage produces either the old or new complete revision, never a partial graph.
 
