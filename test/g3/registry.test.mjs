@@ -43,7 +43,7 @@ test("G3 reopens durable current state and recovers interrupted jobs and leases"
   registry.close();
   registry = new GraphRegistry(path);
   assert.equal(registry.currentRevision(scopeId).id, revision("a", "1").id);
-  assert.deepEqual(registry.recover(now + 20), { interrupted: 1, released: 1 });
+  assert.deepEqual(registry.recover(now + 20), { interrupted: 1, sessions: 0, released: 1 });
   registry.close();
 });
 
@@ -65,7 +65,8 @@ test("G3 backs up and transactionally upgrades an older registry", () => {
   registry.close();
   assert.equal(existsSync(`${path}.v1.backup`), true);
   const reopened = new DatabaseSync(path);
-  assert.equal(reopened.prepare("PRAGMA user_version").get().user_version, 2);
+  assert.equal(reopened.prepare("PRAGMA user_version").get().user_version, 3);
   assert.equal(reopened.prepare("SELECT name FROM sqlite_master WHERE name='context_exports'").get().name, "context_exports");
+  assert.equal(reopened.prepare("SELECT name FROM sqlite_master WHERE name='index_sessions'").get().name, "index_sessions");
   reopened.close();
 });

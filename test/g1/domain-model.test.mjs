@@ -86,7 +86,7 @@ function graphInput(overrides = {}) {
     }],
     nodes: [
       { id: projectId, kind: "project", scopeId: projectId, canonicalSubjectKey: projectId, lifecycle: "current", evidenceIds: [evidenceId] },
-      { id: threadId, kind: "thread", scopeId: projectId, canonicalSubjectKey: threadId, lifecycle: "current", evidenceIds: [evidenceId] },
+      { id: threadId, kind: "thread", nativeThreadId: "native-123", scopeId: projectId, canonicalSubjectKey: threadId, lifecycle: "current", evidenceIds: [evidenceId] },
       { id: topicId, kind: "topic", scopeId: projectId, canonicalSubjectKey: "topic:immutable-graph-revisions", lifecycle: "current", evidenceIds: [evidenceId] },
     ],
     relations: [{

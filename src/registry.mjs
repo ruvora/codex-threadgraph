@@ -3,7 +3,7 @@ import { DatabaseSync } from "node:sqlite";
 import { randomUUID } from "node:crypto";
 import { immutableClone } from "./domain/immutable.mjs";
 
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 const jobStates = new Set(["queued", "reading", "extracting", "linking", "validating", "published", "failed", "cancelled", "interrupted"]);
 
 function fail(code, message, details = {}) {
@@ -82,7 +82,38 @@ export class GraphRegistry {
           UNIQUE(graph_revision_id, content_digest),
           FOREIGN KEY(scope_id) REFERENCES scopes(scope_id) ON DELETE CASCADE
         );
-        PRAGMA user_version = 2;
+      `);
+      if (from <= 2) this.#db.exec(`
+        CREATE TABLE IF NOT EXISTS semantic_entities (
+          scope_id TEXT NOT NULL,
+          subject_key TEXT NOT NULL,
+          entity_id TEXT NOT NULL UNIQUE,
+          created_at TEXT NOT NULL,
+          PRIMARY KEY(scope_id, subject_key),
+          FOREIGN KEY(scope_id) REFERENCES scopes(scope_id) ON DELETE CASCADE
+        );
+        CREATE TABLE IF NOT EXISTS index_sessions (
+          session_id TEXT PRIMARY KEY,
+          scope_id TEXT NOT NULL,
+          job_id TEXT NOT NULL UNIQUE,
+          request_fingerprint TEXT NOT NULL,
+          source_digest TEXT NOT NULL,
+          observation_cutoff TEXT NOT NULL,
+          status TEXT NOT NULL CHECK(status IN ('prepared','publishing','published','cancelled','failed','interrupted')),
+          payload_json TEXT NOT NULL,
+          worker_id TEXT NOT NULL,
+          lease_token TEXT NOT NULL,
+          lease_generation INTEGER NOT NULL,
+          expires_at INTEGER NOT NULL,
+          result_revision_id TEXT,
+          failure_json TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY(scope_id) REFERENCES scopes(scope_id) ON DELETE CASCADE,
+          FOREIGN KEY(job_id) REFERENCES index_jobs(job_id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS index_sessions_scope_status ON index_sessions(scope_id, status);
+        PRAGMA user_version = 3;
       `);
       this.#db.exec("COMMIT");
     } catch (error) {
@@ -136,6 +167,115 @@ export class GraphRegistry {
     }
   }
 
+  createIndexSession(session, now = new Date().toISOString()) {
+    this.#assertLease(session.lease);
+    this.#db.prepare(`INSERT INTO index_sessions(
+      session_id, scope_id, job_id, request_fingerprint, source_digest, observation_cutoff,
+      status, payload_json, worker_id, lease_token, lease_generation, expires_at, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, 'prepared', ?, ?, ?, ?, ?, ?, ?)`)
+      .run(
+        session.sessionId, session.scopeId, session.jobId, session.requestFingerprint,
+        session.sourceDigest, session.observationCutoff, JSON.stringify(session.payload),
+        session.lease.workerId, session.lease.leaseToken, session.lease.generation,
+        session.expiresAt, now, now,
+      );
+    return this.getIndexSession(session.sessionId);
+  }
+
+  resolveSemanticEntity(scopeId, subjectKey, createId, now = new Date().toISOString()) {
+    this.ensureScope(scopeId, now);
+    const existing = this.#db.prepare("SELECT entity_id FROM semantic_entities WHERE scope_id=? AND subject_key=?").get(scopeId, subjectKey);
+    if (existing) return existing.entity_id;
+    const entityId = createId();
+    this.#db.prepare("INSERT OR IGNORE INTO semantic_entities(scope_id, subject_key, entity_id, created_at) VALUES (?, ?, ?, ?)")
+      .run(scopeId, subjectKey, entityId, now);
+    return this.#db.prepare("SELECT entity_id FROM semantic_entities WHERE scope_id=? AND subject_key=?").get(scopeId, subjectKey).entity_id;
+  }
+
+  getIndexSession(sessionId) {
+    const row = this.#db.prepare("SELECT * FROM index_sessions WHERE session_id=?").get(sessionId);
+    if (!row) return null;
+    return immutableClone({
+      sessionId: row.session_id,
+      scopeId: row.scope_id,
+      jobId: row.job_id,
+      requestFingerprint: row.request_fingerprint,
+      sourceDigest: row.source_digest,
+      observationCutoff: row.observation_cutoff,
+      status: row.status,
+      payload: JSON.parse(row.payload_json),
+      lease: { scopeId: row.scope_id, workerId: row.worker_id, leaseToken: row.lease_token, generation: row.lease_generation, expiresAt: row.expires_at },
+      expiresAt: row.expires_at,
+      resultRevisionId: row.result_revision_id ?? null,
+      failure: row.failure_json ? JSON.parse(row.failure_json) : null,
+    });
+  }
+
+  failIndexSession(sessionId, failure, now = new Date().toISOString()) {
+    this.#db.exec("BEGIN IMMEDIATE");
+    try {
+      const session = this.getIndexSession(sessionId);
+      if (!session) fail("INDEX_SESSION_NOT_FOUND", "Index session does not exist");
+      if (!["prepared", "publishing"].includes(session.status)) fail("INDEX_SESSION_TERMINAL", "Index session is not active");
+      this.#db.prepare("UPDATE index_sessions SET status='failed', failure_json=?, updated_at=? WHERE session_id=?")
+        .run(JSON.stringify(failure), now, sessionId);
+      this.#db.prepare("UPDATE index_jobs SET state='failed', failure_json=?, updated_at=? WHERE job_id=?")
+        .run(JSON.stringify(failure), now, session.jobId);
+      this.#db.prepare("DELETE FROM writer_leases WHERE scope_id=? AND worker_id=? AND lease_token=? AND generation=?")
+        .run(session.scopeId, session.lease.workerId, session.lease.leaseToken, session.lease.generation);
+      this.#db.exec("COMMIT");
+    } catch (error) {
+      this.#db.exec("ROLLBACK");
+      throw error;
+    }
+  }
+
+  cancelIndexSession(sessionId, now = new Date().toISOString()) {
+    this.#db.exec("BEGIN IMMEDIATE");
+    try {
+      const session = this.getIndexSession(sessionId);
+      if (!session) fail("INDEX_SESSION_NOT_FOUND", "Index session does not exist");
+      if (session.status !== "prepared") fail("INDEX_SESSION_TERMINAL", "Only a prepared session can be cancelled");
+      this.#db.prepare("UPDATE index_sessions SET status='cancelled', updated_at=? WHERE session_id=?").run(now, sessionId);
+      this.#db.prepare("UPDATE index_jobs SET state='cancelled', updated_at=? WHERE job_id=?").run(now, session.jobId);
+      this.#db.prepare("DELETE FROM writer_leases WHERE scope_id=? AND worker_id=? AND lease_token=? AND generation=?")
+        .run(session.scopeId, session.lease.workerId, session.lease.leaseToken, session.lease.generation);
+      this.#db.exec("COMMIT");
+      return this.getIndexSession(sessionId);
+    } catch (error) {
+      this.#db.exec("ROLLBACK");
+      throw error;
+    }
+  }
+
+  publishIndexSession(sessionId, revision, { faultAt = null, now = new Date().toISOString(), nowMs = Date.now() } = {}) {
+    this.#db.exec("BEGIN IMMEDIATE");
+    try {
+      const session = this.getIndexSession(sessionId);
+      if (!session) fail("INDEX_SESSION_NOT_FOUND", "Index session does not exist");
+      if (session.status !== "prepared") fail("INDEX_SESSION_TERMINAL", "Index session cannot publish again");
+      if (session.expiresAt <= nowMs) fail("INDEX_SESSION_EXPIRED", "Index session has expired");
+      if (revision.scopeId !== session.scopeId) fail("INDEX_SESSION_SCOPE_MISMATCH", "Revision scope differs from the prepared session");
+      this.#assertLease(session.lease, nowMs);
+      this.#db.prepare("UPDATE index_sessions SET status='publishing', updated_at=? WHERE session_id=?").run(now, sessionId);
+      this.#db.prepare("INSERT OR IGNORE INTO graph_revisions(revision_id, scope_id, fingerprint, payload_json, published_at) VALUES (?, ?, ?, ?, ?)")
+        .run(revision.id, revision.scopeId, revision.fingerprint, JSON.stringify(revision), now);
+      if (faultAt === "after_revision_insert") fail("INJECTED_PUBLICATION_FAILURE", "Injected publication interruption");
+      this.#db.prepare("UPDATE scopes SET current_revision_id=?, updated_at=? WHERE scope_id=?").run(revision.id, now, revision.scopeId);
+      this.#db.prepare("UPDATE index_sessions SET status='published', result_revision_id=?, updated_at=? WHERE session_id=?")
+        .run(revision.id, now, sessionId);
+      this.#db.prepare("UPDATE index_jobs SET state='published', updated_at=? WHERE job_id=?").run(now, session.jobId);
+      this.#db.prepare("DELETE FROM writer_leases WHERE scope_id=? AND worker_id=? AND lease_token=? AND generation=?")
+        .run(session.scopeId, session.lease.workerId, session.lease.leaseToken, session.lease.generation);
+      if (faultAt === "after_pointer_update") fail("INJECTED_PUBLICATION_FAILURE", "Injected publication interruption");
+      this.#db.exec("COMMIT");
+      return this.getIndexSession(sessionId);
+    } catch (error) {
+      this.#db.exec("ROLLBACK");
+      throw error;
+    }
+  }
+
   publish(revision, lease, { faultAt = null, now = new Date().toISOString() } = {}) {
     this.#db.exec("BEGIN IMMEDIATE");
     try {
@@ -162,8 +302,10 @@ export class GraphRegistry {
   recover(nowMs = Date.now()) {
     const interrupted = this.#db.prepare("UPDATE index_jobs SET state='interrupted', updated_at=? WHERE state IN ('reading','extracting','linking','validating')")
       .run(new Date(nowMs).toISOString()).changes;
+    const sessions = this.#db.prepare("UPDATE index_sessions SET status='interrupted', updated_at=? WHERE status='publishing'")
+      .run(new Date(nowMs).toISOString()).changes;
     const released = this.#db.prepare("DELETE FROM writer_leases WHERE expires_at <= ?").run(nowMs).changes;
-    return Object.freeze({ interrupted, released });
+    return Object.freeze({ interrupted, sessions, released });
   }
 
   recordExport(pack, now = new Date().toISOString()) {
