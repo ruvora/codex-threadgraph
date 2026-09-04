@@ -44,6 +44,7 @@ The alpha implementation is split into independently testable modules:
 | G5 | `src/inference.mjs` | blocked candidates and deterministic confidence bands |
 | G6 | `src/selection.mjs` | Goal Queries, Selection Reports, specialization lifecycle |
 | G7 | `src/graph-service.mjs`, `server/`, `ui/` | read-only MCP boundary, navigation, graph semantics |
+| G10 | `src/registry.mjs`, `src/graph-service.mjs`, `server/`, `ui/` | source scrubbing and preview-confirmed local retention |
 | G8 | `src/context-pack.mjs` | provenance-only Context Pack export and validation |
 
 ## Canonical flow

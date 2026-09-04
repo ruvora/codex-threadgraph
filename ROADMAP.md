@@ -11,9 +11,10 @@
 - [x] Concrete graph-generation pipeline, identity schema, value formulas, and worked example
 - [x] G0 seed fixture corpus and executable red contract suite
 - [x] G0 contract kernel satisfies all seed fixtures
-- [ ] Calibrated extraction, relation, and selection fixture corpus
+- [x] Calibrated extraction-boundary, normalization, relation, and selection fixture corpus
 - [x] Real thread-list and thread-read forward test against Codex 0.152.1
 - [x] Installed-cache MCP discovery and real-scope indexing E2E
+- [x] Maximum initial-index resource and coverage budget verification
 - [ ] New-task Codex desktop plugin discovery and graph-open E2E
 
 ## 0.2 — Local persistent graph
@@ -24,20 +25,20 @@
 - [x] Deterministic exact-edge extraction
 - [x] Bounded semantic inference implementation
 - [x] Durable end-to-end prepare, extract, validate, and publish pipeline
-- [ ] Held-out inference and selection calibration
-- [ ] Fine-grained source retention and thread deletion UX
+- [x] Held-out inference and selection policy calibration
+- [x] Fine-grained source retention and preview-confirmed indexed-thread deletion UX
 
 ## 0.3 — Interactive graph
 
 - [x] Read-only MCP server and graph query API
 - [x] Accessible graph surface and evidence inspection model
 - [x] Explicit native Codex thread navigation boundary
-- [ ] Live embedded-app packaging and relation filters
-- [ ] Large-graph performance and privacy verification
+- [x] MCP Apps resource packaging and relation/evidence filters
+- [x] Large-graph performance, bounded rendering, and privacy verification
 
 ## 0.4 — Optional ThreadHub adapter
 
 - [x] Versioned Context Pack export and producer validation
-- Explicit user-selected handoff
-- [ ] ThreadHub-side validation and provenance import
-- No shared database and no implicit execution authority
+- [x] Explicit user-selected handoff contract
+- [x] Independent ThreadHub-side validation and provenance-only import
+- [x] No shared database and no implicit execution authority

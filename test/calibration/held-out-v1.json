@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "calibration-corpus/1",
+  "corpusId": "threadgraph-held-out-v1",
+  "intendedUse": "evaluation_only",
+  "sanitized": true,
+  "inference": [
+    { "id": "rel-en-high-topic", "language": "en", "kind": "related_to", "strength": "strong", "categories": 2, "ranges": 2, "concreteSubject": "storage", "expectedAllow": true, "expectedBand": "high" },
+    { "id": "rel-ko-high-topic", "language": "ko", "kind": "related_to", "strength": "moderate", "categories": 2, "ranges": 2, "concreteSubject": "저장소", "expectedAllow": true, "expectedBand": "high" },
+    { "id": "rel-mixed-medium", "language": "mixed", "kind": "related_to", "strength": "moderate", "categories": 2, "ranges": 1, "concreteSubject": "SQLite 저장", "expectedAllow": true, "expectedBand": "medium" },
+    { "id": "rel-en-medium", "language": "en", "kind": "related_to", "strength": "weak", "categories": 2, "ranges": 1, "concreteSubject": "indexing", "expectedAllow": true, "expectedBand": "medium" },
+    { "id": "rel-no-closure", "language": "en", "kind": "related_to", "strength": "strong", "categories": 3, "ranges": 2, "concreteSubject": "registry", "hasEvidenceClosure": false, "expectedAllow": false },
+    { "id": "rel-counter-evidence", "language": "ko", "kind": "related_to", "strength": "strong", "categories": 3, "ranges": 2, "concreteSubject": "레지스트리", "hasUnresolvedCounterEvidence": true, "expectedAllow": false },
+
+    { "id": "contra-en-true", "language": "en", "kind": "contradicts", "ranges": 2, "concreteSubject": "sandbox", "sameCanonicalSubject": true, "incompatiblePredicateOrPolarity": true, "overlappingValidity": true, "leftEvidenceClass": "extracted", "rightEvidenceClass": "observed", "expectedAllow": true, "expectedBand": "high" },
+    { "id": "contra-ko-true", "language": "ko", "kind": "contradicts", "ranges": 2, "concreteSubject": "네트워크 접근", "sameCanonicalSubject": true, "incompatiblePredicateOrPolarity": true, "overlappingValidity": true, "leftEvidenceClass": "extracted", "rightEvidenceClass": "extracted", "expectedAllow": true, "expectedBand": "high" },
+    { "id": "contra-mixed-true", "language": "mixed", "kind": "contradicts", "ranges": 1, "categories": 2, "concreteSubject": "workspace mode", "sameCanonicalSubject": true, "incompatiblePredicateOrPolarity": true, "overlappingValidity": true, "leftEvidenceClass": "observed", "rightEvidenceClass": "extracted", "expectedAllow": true, "expectedBand": "medium" },
+    { "id": "contra-topic-only", "language": "en", "kind": "contradicts", "ranges": 2, "concreteSubject": "database", "sameCanonicalSubject": false, "incompatiblePredicateOrPolarity": false, "overlappingValidity": true, "leftEvidenceClass": "extracted", "rightEvidenceClass": "extracted", "expectedAllow": false },
+    { "id": "contra-compatible", "language": "ko", "kind": "contradicts", "ranges": 2, "concreteSubject": "데이터베이스", "sameCanonicalSubject": true, "incompatiblePredicateOrPolarity": false, "overlappingValidity": true, "leftEvidenceClass": "extracted", "rightEvidenceClass": "extracted", "expectedAllow": false },
+    { "id": "contra-time-separated", "language": "mixed", "kind": "contradicts", "ranges": 2, "concreteSubject": "runtime 버전", "sameCanonicalSubject": true, "incompatiblePredicateOrPolarity": true, "overlappingValidity": false, "leftEvidenceClass": "extracted", "rightEvidenceClass": "extracted", "expectedAllow": false },
+    { "id": "contra-inferred-only", "language": "en", "kind": "contradicts", "ranges": 2, "concreteSubject": "policy", "sameCanonicalSubject": true, "incompatiblePredicateOrPolarity": true, "overlappingValidity": true, "leftEvidenceClass": "inferred", "rightEvidenceClass": "inferred", "expectedAllow": false },
+
+    { "id": "super-en-explicit", "language": "en", "kind": "supersedes", "ranges": 2, "concreteSubject": "schema", "explicitReplacementEvidence": true, "expectedAllow": true, "expectedBand": "high" },
+    { "id": "super-ko-resolution", "language": "ko", "kind": "supersedes", "ranges": 2, "concreteSubject": "상태 정의", "acceptedUserResolution": true, "expectedAllow": true, "expectedBand": "high" },
+    { "id": "super-newer-only", "language": "en", "kind": "supersedes", "ranges": 2, "concreteSubject": "schema", "isLater": true, "expectedAllow": false },
+    { "id": "super-ko-newer-only", "language": "ko", "kind": "supersedes", "ranges": 2, "concreteSubject": "설계", "isLater": true, "expectedAllow": false },
+
+    { "id": "continue-lineage", "language": "en", "kind": "continues", "ranges": 2, "concreteSubject": "migration", "isLater": true, "subjectContinuity": true, "exactLineage": true, "expectedAllow": true, "expectedBand": "high" },
+    { "id": "continue-reference-ko", "language": "ko", "kind": "continues", "ranges": 1, "categories": 2, "concreteSubject": "마이그레이션", "isLater": true, "subjectContinuity": true, "explicitReference": true, "expectedAllow": true, "expectedBand": "medium" },
+    { "id": "continue-no-link", "language": "en", "kind": "continues", "ranges": 2, "concreteSubject": "migration", "isLater": true, "subjectContinuity": true, "expectedAllow": false },
+    { "id": "continue-different-subject", "language": "mixed", "kind": "continues", "ranges": 2, "concreteSubject": "migration 전환", "isLater": true, "subjectContinuity": false, "exactLineage": true, "expectedAllow": false }
+  ],
+  "selection": [
+    { "id": "select-en-clear", "language": "en", "expectedResult": "recommended", "expectedThreadId": "a", "candidates": [{ "threadId": "a", "profile": "high" }, { "threadId": "b", "profile": "low" }] },
+    { "id": "select-ko-clear", "language": "ko", "expectedResult": "recommended", "expectedThreadId": "a", "candidates": [{ "threadId": "a", "profile": "high" }, { "threadId": "b", "profile": "low" }] },
+    { "id": "select-mixed-clear", "language": "mixed", "expectedResult": "recommended", "expectedThreadId": "a", "candidates": [{ "threadId": "a", "profile": "high" }] },
+    { "id": "select-en-close", "language": "en", "expectedResult": "ambiguous", "candidates": [{ "threadId": "a", "profile": "high" }, { "threadId": "b", "profile": "close" }] },
+    { "id": "select-ko-close", "language": "ko", "expectedResult": "ambiguous", "candidates": [{ "threadId": "a", "profile": "high" }, { "threadId": "b", "profile": "close" }] },
+    { "id": "select-en-low", "language": "en", "expectedResult": "no_suitable_candidate", "candidates": [{ "threadId": "a", "profile": "low" }] },
+    { "id": "select-mixed-outside", "language": "mixed", "expectedResult": "no_suitable_candidate", "candidates": [{ "threadId": "a", "profile": "high", "outsideScope": true }] },
+    { "id": "select-en-incomplete", "language": "en", "expectedResult": "incomplete", "candidates": [{ "threadId": "a", "profile": "high", "requiredEvidenceUnavailable": true }] },
+    { "id": "select-ko-incomplete", "language": "ko", "expectedResult": "incomplete", "candidates": [{ "threadId": "a", "profile": "high", "requiredEvidenceUnavailable": true }] },
+    { "id": "select-blocking-conflict", "language": "mixed", "expectedResult": "ambiguous", "candidates": [{ "threadId": "a", "profile": "high", "blockingConflict": true }, { "threadId": "b", "profile": "low" }] }
+  ],
+  "authority": [
+    { "id": "decision-en-asserted", "language": "en", "kind": "decision", "modality": "asserted", "lifecycle": "active", "expectedActive": true },
+    { "id": "constraint-ko-asserted", "language": "ko", "kind": "constraint", "modality": "asserted", "lifecycle": "active", "expectedActive": true },
+    { "id": "decision-mixed-asserted", "language": "mixed", "kind": "decision", "modality": "asserted", "lifecycle": "active", "expectedActive": true },
+    { "id": "decision-en-proposed", "language": "en", "kind": "decision", "modality": "proposed", "lifecycle": "active", "expectedActive": false },
+    { "id": "constraint-ko-question", "language": "ko", "kind": "constraint", "modality": "questioned", "lifecycle": "active", "expectedActive": false },
+    { "id": "decision-mixed-rejected", "language": "mixed", "kind": "decision", "modality": "rejected", "lifecycle": "active", "expectedActive": false },
+    { "id": "constraint-en-proposed", "language": "en", "kind": "constraint", "modality": "proposed", "lifecycle": "active", "expectedActive": false },
+    { "id": "decision-ko-rejected", "language": "ko", "kind": "decision", "modality": "rejected", "lifecycle": "active", "expectedActive": false }
+  ],
+  "normalization": [
+    { "id": "normalize-en-case", "language": "en", "kind": "topic", "subjectCandidate": "  DataBase  ", "expectedNormalized": "database", "expectedCanonicalSubjectId": null },
+    { "id": "normalize-en-spacing", "language": "en", "kind": "decision", "subjectCandidate": "workspace   mode", "expectedNormalized": "workspace mode", "expectedCanonicalSubjectId": null },
+    { "id": "normalize-ko-spacing", "language": "ko", "kind": "constraint", "subjectCandidate": "  네트워크   접근  ", "expectedNormalized": "네트워크 접근", "expectedCanonicalSubjectId": null },
+    { "id": "normalize-ko-alias", "language": "ko", "kind": "topic", "subjectCandidate": "저장소", "alias": "저장소", "aliasEntityId": "ent_storage", "expectedNormalized": "저장소", "expectedCanonicalSubjectId": "ent_storage" },
+    { "id": "normalize-mixed-nfkc", "language": "mixed", "kind": "topic", "subjectCandidate": "ＳＱＬite 저장", "expectedNormalized": "sqlite 저장", "expectedCanonicalSubjectId": null },
+    { "id": "normalize-mixed-alias-case", "language": "mixed", "kind": "topic", "subjectCandidate": "Codex 런타임", "alias": "CODEX 런타임", "aliasEntityId": "ent_runtime", "expectedNormalized": "codex 런타임", "expectedCanonicalSubjectId": "ent_runtime" }
+  ]
+}

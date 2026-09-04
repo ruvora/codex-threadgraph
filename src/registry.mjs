@@ -1,9 +1,9 @@
-import { copyFileSync, existsSync } from "node:fs";
+import { chmodSync, copyFileSync, existsSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { randomUUID } from "node:crypto";
 import { immutableClone } from "./domain/immutable.mjs";
 
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 const jobStates = new Set(["queued", "reading", "extracting", "linking", "validating", "published", "failed", "cancelled", "interrupted"]);
 
 function fail(code, message, details = {}) {
@@ -11,6 +11,29 @@ function fail(code, message, details = {}) {
   error.code = code;
   error.details = details;
   throw error;
+}
+
+function retainedSessionPayload(payload) {
+  const request = payload?.request ?? {};
+  return {
+    schemaVersion: "retained-index-session/1",
+    scopeId: request.scopeId ?? null,
+    triggerKind: request.triggerKind ?? null,
+    observationCutoff: request.observationCutoff ?? null,
+    parentRevisionId: request.parentRevisionId ?? null,
+    memberCount: Array.isArray(payload?.members) ? payload.members.length : 0,
+    sourceCount: Array.isArray(payload?.sources) ? payload.sources.length : 0,
+    semanticSourceCount: Array.isArray(payload?.semanticSourceIds) ? payload.semanticSourceIds.length : 0,
+  };
+}
+
+function secureRegistryFiles(path) {
+  for (const candidate of [path, `${path}-wal`, `${path}-shm`]) {
+    if (!existsSync(candidate)) continue;
+    try { chmodSync(candidate, 0o600); } catch (error) {
+      if (process.platform !== "win32") throw error;
+    }
+  }
 }
 
 export class GraphRegistry {
@@ -25,9 +48,14 @@ export class GraphRegistry {
     const version = this.#db.prepare("PRAGMA user_version").get().user_version;
     if (version > SCHEMA_VERSION) fail("REGISTRY_VERSION_UNSUPPORTED", `Registry version ${version} is newer than supported`);
     if (version < SCHEMA_VERSION) {
-      if (existed) copyFileSync(path, `${path}.v${version}.backup`);
+      if (existed) {
+        const backupPath = `${path}.v${version}.backup`;
+        copyFileSync(path, backupPath);
+        try { chmodSync(backupPath, 0o600); } catch (error) { if (process.platform !== "win32") throw error; }
+      }
       this.#migrate(version);
     }
+    secureRegistryFiles(path);
     const check = this.#db.prepare("PRAGMA integrity_check").get();
     if (check.integrity_check !== "ok") fail("REGISTRY_INTEGRITY_FAILED", check.integrity_check);
   }
@@ -113,8 +141,27 @@ export class GraphRegistry {
           FOREIGN KEY(job_id) REFERENCES index_jobs(job_id) ON DELETE CASCADE
         );
         CREATE INDEX IF NOT EXISTS index_sessions_scope_status ON index_sessions(scope_id, status);
-        PRAGMA user_version = 3;
       `);
+      if (from <= 3) this.#db.exec(`
+        CREATE TABLE IF NOT EXISTS retention_events (
+          event_id TEXT PRIMARY KEY,
+          scope_id TEXT NOT NULL,
+          operation TEXT NOT NULL CHECK(operation IN ('thread_delete')),
+          target_thread_id TEXT NOT NULL,
+          previous_revision_id TEXT NOT NULL,
+          result_revision_id TEXT NOT NULL,
+          counts_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY(scope_id) REFERENCES scopes(scope_id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS retention_events_scope ON retention_events(scope_id, created_at);
+        PRAGMA user_version = 4;
+      `);
+      if (from <= 3) {
+        const terminalRows = this.#db.prepare("SELECT session_id, payload_json FROM index_sessions WHERE status IN ('published','cancelled','failed','interrupted')").all();
+        for (const row of terminalRows) this.#db.prepare("UPDATE index_sessions SET payload_json=? WHERE session_id=?")
+          .run(JSON.stringify(retainedSessionPayload(JSON.parse(row.payload_json))), row.session_id);
+      }
       this.#db.exec("COMMIT");
     } catch (error) {
       this.#db.exec("ROLLBACK");
@@ -222,8 +269,8 @@ export class GraphRegistry {
       const session = this.getIndexSession(sessionId);
       if (!session) fail("INDEX_SESSION_NOT_FOUND", "Index session does not exist");
       if (!["prepared", "publishing"].includes(session.status)) fail("INDEX_SESSION_TERMINAL", "Index session is not active");
-      this.#db.prepare("UPDATE index_sessions SET status='failed', failure_json=?, updated_at=? WHERE session_id=?")
-        .run(JSON.stringify(failure), now, sessionId);
+      this.#db.prepare("UPDATE index_sessions SET status='failed', payload_json=?, failure_json=?, updated_at=? WHERE session_id=?")
+        .run(JSON.stringify(retainedSessionPayload(session.payload)), JSON.stringify(failure), now, sessionId);
       this.#db.prepare("UPDATE index_jobs SET state='failed', failure_json=?, updated_at=? WHERE job_id=?")
         .run(JSON.stringify(failure), now, session.jobId);
       this.#db.prepare("DELETE FROM writer_leases WHERE scope_id=? AND worker_id=? AND lease_token=? AND generation=?")
@@ -241,7 +288,8 @@ export class GraphRegistry {
       const session = this.getIndexSession(sessionId);
       if (!session) fail("INDEX_SESSION_NOT_FOUND", "Index session does not exist");
       if (session.status !== "prepared") fail("INDEX_SESSION_TERMINAL", "Only a prepared session can be cancelled");
-      this.#db.prepare("UPDATE index_sessions SET status='cancelled', updated_at=? WHERE session_id=?").run(now, sessionId);
+      this.#db.prepare("UPDATE index_sessions SET status='cancelled', payload_json=?, updated_at=? WHERE session_id=?")
+        .run(JSON.stringify(retainedSessionPayload(session.payload)), now, sessionId);
       this.#db.prepare("UPDATE index_jobs SET state='cancelled', updated_at=? WHERE job_id=?").run(now, session.jobId);
       this.#db.prepare("DELETE FROM writer_leases WHERE scope_id=? AND worker_id=? AND lease_token=? AND generation=?")
         .run(session.scopeId, session.lease.workerId, session.lease.leaseToken, session.lease.generation);
@@ -267,8 +315,8 @@ export class GraphRegistry {
         .run(revision.id, revision.scopeId, revision.fingerprint, JSON.stringify(revision), now);
       if (faultAt === "after_revision_insert") fail("INJECTED_PUBLICATION_FAILURE", "Injected publication interruption");
       this.#db.prepare("UPDATE scopes SET current_revision_id=?, updated_at=? WHERE scope_id=?").run(revision.id, now, revision.scopeId);
-      this.#db.prepare("UPDATE index_sessions SET status='published', result_revision_id=?, updated_at=? WHERE session_id=?")
-        .run(revision.id, now, sessionId);
+      this.#db.prepare("UPDATE index_sessions SET status='published', payload_json=?, result_revision_id=?, updated_at=? WHERE session_id=?")
+        .run(JSON.stringify(retainedSessionPayload(session.payload)), revision.id, now, sessionId);
       this.#db.prepare("UPDATE index_jobs SET state='published', updated_at=? WHERE job_id=?").run(now, session.jobId);
       this.#db.prepare("DELETE FROM writer_leases WHERE scope_id=? AND worker_id=? AND lease_token=? AND generation=?")
         .run(session.scopeId, session.lease.workerId, session.lease.leaseToken, session.lease.generation);
@@ -304,13 +352,77 @@ export class GraphRegistry {
     return row?.payload_json ? immutableClone(JSON.parse(row.payload_json)) : null;
   }
 
+  retentionSummary(scopeId) {
+    const revision = this.currentRevision(scopeId);
+    const sessions = this.#db.prepare("SELECT status, payload_json FROM index_sessions WHERE scope_id=?").all(scopeId);
+    const rawSourceSessions = sessions.filter((row) => Array.isArray(JSON.parse(row.payload_json)?.sources)).length;
+    return immutableClone({
+      scopeId,
+      sourceTextPolicy: "temporary_prepared_session_only",
+      currentRevisionId: revision?.id ?? null,
+      currentThreadCount: revision?.nodes?.filter((node) => node.kind === "thread").length ?? 0,
+      revisionCount: this.#db.prepare("SELECT COUNT(*) AS count FROM graph_revisions WHERE scope_id=?").get(scopeId).count,
+      exportCount: this.#db.prepare("SELECT COUNT(*) AS count FROM context_exports WHERE scope_id=?").get(scopeId).count,
+      activePreparedSessions: sessions.filter((row) => row.status === "prepared").length,
+      terminalSessions: sessions.filter((row) => ["published", "cancelled", "failed", "interrupted"].includes(row.status)).length,
+      sessionsContainingTemporarySources: rawSourceSessions,
+      retentionEventCount: this.#db.prepare("SELECT COUNT(*) AS count FROM retention_events WHERE scope_id=?").get(scopeId).count,
+    });
+  }
+
+  publishThreadDeletion(revision, lease, threadId, counts, { now = new Date().toISOString() } = {}) {
+    this.#db.exec("BEGIN IMMEDIATE");
+    try {
+      this.#assertLease(lease);
+      const current = this.currentRevision(revision.scopeId);
+      if (!current || current.id !== revision.parentRevisionId) fail("THREAD_DELETE_REVISION_STALE", "Deletion preview no longer matches the current revision");
+      this.#db.prepare("INSERT INTO graph_revisions(revision_id, scope_id, fingerprint, payload_json, published_at) VALUES (?, ?, ?, ?, ?)")
+        .run(revision.id, revision.scopeId, revision.fingerprint, JSON.stringify(revision), now);
+      this.#db.prepare("UPDATE scopes SET current_revision_id=?, updated_at=? WHERE scope_id=?").run(revision.id, now, revision.scopeId);
+      const removedRevisionIds = [];
+      for (const row of this.#db.prepare("SELECT revision_id, payload_json FROM graph_revisions WHERE scope_id=? AND revision_id<>?").all(revision.scopeId, revision.id)) {
+        const payload = JSON.parse(row.payload_json);
+        if (payload.nodes?.some((node) => node.id === threadId) || payload.observations?.some((observation) => observation.threadId === threadId)) removedRevisionIds.push(row.revision_id);
+      }
+      for (const revisionId of removedRevisionIds) {
+        this.#db.prepare("DELETE FROM context_exports WHERE graph_revision_id=?").run(revisionId);
+        this.#db.prepare("DELETE FROM graph_revisions WHERE revision_id=?").run(revisionId);
+      }
+      const retainedSubjectKeys = new Set(revision.nodes.filter((node) => node.kind === "topic").map((node) => node.canonicalSubjectKey));
+      for (const row of this.#db.prepare("SELECT subject_key FROM semantic_entities WHERE scope_id=?").all(revision.scopeId)) {
+        if (!retainedSubjectKeys.has(row.subject_key)) this.#db.prepare("DELETE FROM semantic_entities WHERE scope_id=? AND subject_key=?").run(revision.scopeId, row.subject_key);
+      }
+      const eventId = `ret_${randomUUID()}`;
+      const resultCounts = { ...counts, purgedRevisionCount: removedRevisionIds.length };
+      this.#db.prepare("INSERT INTO retention_events(event_id, scope_id, operation, target_thread_id, previous_revision_id, result_revision_id, counts_json, created_at) VALUES (?, ?, 'thread_delete', ?, ?, ?, ?, ?)")
+        .run(eventId, revision.scopeId, threadId, revision.parentRevisionId, revision.id, JSON.stringify(resultCounts), now);
+      this.#db.prepare("DELETE FROM writer_leases WHERE scope_id=? AND worker_id=? AND lease_token=? AND generation=?")
+        .run(lease.scopeId, lease.workerId, lease.leaseToken, lease.generation);
+      this.#db.exec("COMMIT");
+      return immutableClone({ eventId, scopeId: revision.scopeId, threadId, previousRevisionId: revision.parentRevisionId, revisionId: revision.id, counts: resultCounts });
+    } catch (error) {
+      this.#db.exec("ROLLBACK");
+      throw error;
+    }
+  }
+
   recover(nowMs = Date.now()) {
     const interrupted = this.#db.prepare("UPDATE index_jobs SET state='interrupted', updated_at=? WHERE state IN ('reading','extracting','linking','validating')")
       .run(new Date(nowMs).toISOString()).changes;
-    const sessions = this.#db.prepare("UPDATE index_sessions SET status='interrupted', updated_at=? WHERE status='publishing'")
-      .run(new Date(nowMs).toISOString()).changes;
+    const publishing = this.#db.prepare("SELECT session_id, payload_json FROM index_sessions WHERE status='publishing'").all();
+    for (const row of publishing) this.#db.prepare("UPDATE index_sessions SET status='interrupted', payload_json=?, updated_at=? WHERE session_id=?")
+      .run(JSON.stringify(retainedSessionPayload(JSON.parse(row.payload_json))), new Date(nowMs).toISOString(), row.session_id);
+    const sessions = publishing.length;
+    const expired = this.#db.prepare("SELECT session_id, job_id, payload_json FROM index_sessions WHERE status='prepared' AND expires_at<=?").all(nowMs);
+    for (const row of expired) {
+      const failure = JSON.stringify({ code: "INDEX_SESSION_EXPIRED", message: "Prepared session expired before recovery" });
+      this.#db.prepare("UPDATE index_sessions SET status='failed', payload_json=?, failure_json=?, updated_at=? WHERE session_id=?")
+        .run(JSON.stringify(retainedSessionPayload(JSON.parse(row.payload_json))), failure, new Date(nowMs).toISOString(), row.session_id);
+      this.#db.prepare("UPDATE index_jobs SET state='failed', failure_json=?, updated_at=? WHERE job_id=?")
+        .run(failure, new Date(nowMs).toISOString(), row.job_id);
+    }
     const released = this.#db.prepare("DELETE FROM writer_leases WHERE expires_at <= ?").run(nowMs).changes;
-    return Object.freeze({ interrupted, sessions, released });
+    return Object.freeze({ interrupted, sessions, expiredPrepared: expired.length, released });
   }
 
   recordExport(pack, now = new Date().toISOString()) {
@@ -322,18 +434,11 @@ export class GraphRegistry {
     return immutableClone(JSON.parse(row.manifest_json));
   }
 
-  deleteThread(scopeId, threadId) {
-    const revision = this.currentRevision(scopeId);
-    if (!revision) return false;
-    if (revision.nodes.some((node) => node.id === threadId)) fail("THREAD_DELETE_REQUIRES_REVISION", "Thread deletion must publish an invalidating graph revision");
-    return false;
-  }
-
   deleteScope(scopeId) {
     return this.#db.prepare("DELETE FROM scopes WHERE scope_id=?").run(scopeId).changes === 1;
   }
 
-  close() { this.#db.close(); }
+  close() { secureRegistryFiles(this.#path); this.#db.close(); secureRegistryFiles(this.#path); }
 }
 
 export { SCHEMA_VERSION };

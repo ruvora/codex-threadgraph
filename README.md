@@ -70,9 +70,9 @@ The alpha runtime requires Node.js 24 or newer for the built-in SQLite Registry.
 
 ## Status
 
-`0.1.0` alpha implementation with executable G0–G9 contract coverage. It includes scoped native-source adaptation, durable prepare/extract/publish sessions, immutable graph construction, a versioned SQLite Registry, deterministic extraction and inference gates, explainable selection, a local-only MCP server, an accessible graph view, and validated Context Pack export.
+`0.1.0` alpha implementation with executable G0–G12 test coverage. It includes scoped native-source adaptation, durable prepare/extract/publish sessions, terminal source scrubbing, preview-confirmed local retention controls, immutable graph construction, a versioned SQLite Registry, calibrated deterministic inference and selection gates, a local-only MCP server, a portable MCP Apps graph with relation filters and bounded rendering, validated Context Pack export, and an independently tested ThreadHub consumer boundary.
 
-The implementation is not yet a stable release. The personal-marketplace package now passes installed-cache MCP and real-scope indexing E2E. New-task Codex desktop discovery, G5/G6 corpus calibration, large-scope G7 performance measurements, and an independent ThreadHub consumer test remain release gates. The repository does not claim those checks have passed.
+The implementation is not yet a stable release. The personal-marketplace package passes installed-cache MCP and real-scope indexing E2E; deterministic policy calibration, saturated indexing budgets, source-level MCP Apps performance and privacy gates, and independent ThreadHub consumer validation pass. New-task Codex desktop discovery and graph-open E2E remains the final release gate. The repository does not claim that check has passed.
 
 ## Author
 

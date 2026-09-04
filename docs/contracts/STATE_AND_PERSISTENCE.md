@@ -18,6 +18,8 @@ One local ThreadGraph service owns a versioned SQLite Graph Registry. It never o
 
 Full transcripts are not durable entities by default.
 
+Source text is temporary session state, not a terminal audit field. Terminal and expired indexing sessions retain fingerprints, counts, states, and sanitized failures only.
+
 Every indexing job records `triggerKind` as `initial_graph_open` or `explicit_refresh`. No other trigger value is supported in the first schema version. Restart recovery may continue the same previously authorized job but cannot create a new refresh request.
 
 ## State machines
@@ -80,3 +82,8 @@ On restart:
 - expired writer leases are released;
 - no native thread is reread until scope and host access are revalidated;
 - no prior inferred relation is silently promoted because of recovery.
+- expired prepared sessions are failed and their temporary Source Envelopes are scrubbed.
+
+## Retention revisions
+
+Deleting one indexed thread creates a child Graph Revision after removing its observations, evidence items, dependent nodes, and relations. The same transaction advances the current pointer, removes affected historical revision payloads and exports, fences the writer, and records a content-free retention event. The confirmation token includes the scope, thread, current revision, and previewed counts, so concurrent publication makes it stale.

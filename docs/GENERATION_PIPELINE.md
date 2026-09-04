@@ -74,6 +74,8 @@ These are safety ceilings, not completeness claims. Reaching a limit publishes `
 
 The limits must be calibrated with real fixtures before G2 exits. Changing them creates a new policy version; prompt text cannot override them.
 
+The initial saturated measurement and acceptance decision are recorded in [Initial indexing budget verification v1](./evidence/INDEX_BUDGET_V1.md).
+
 ## Thread coverage selection
 
 All enumerated threads receive exact metadata nodes. Deep-read priority is deterministic:

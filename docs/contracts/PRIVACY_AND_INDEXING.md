@@ -18,9 +18,15 @@ The indexer must enforce per-request thread, range, byte, and elapsed-time budge
 
 ## Retention
 
-The future persistent store must support project-scoped deletion, thread-scoped deletion, and full local index reset independently of native thread deletion. Retention operations must not modify Codex thread history.
+The persistent store supports project-scoped deletion, thread-scoped deletion, and full local index reset independently of native thread deletion. Retention operations never modify Codex thread history.
+
+Detailed Source Envelopes may exist only inside an active prepared indexing session. Publication, cancellation, validation failure, expiry recovery, and migration of a legacy terminal session replace the envelope payload with counts and non-content audit fields. Terminal sessions must not retain source items, thread titles, messages, prompts, or excerpts.
+
+Thread-scoped deletion requires a preview bound to the current Graph Revision, an explicit user confirmation, and the same confirmation token at execution. It atomically publishes a graph without the target observations, evidence, dependent nodes, or relations; removes historical revisions and Context Packs containing that thread; and records only a derived retention event. A stale preview fails closed.
 
 Derived data records the redaction policy revision used to create it. Tightening redaction invalidates incompatible cached labels, summaries, and exports.
+
+Version 0.1 does not implement application-level database encryption. On POSIX hosts, Registry, WAL, SHM, and migration backup files are forced to owner-only permissions. Confidentiality at rest otherwise relies on the operating-system account boundary and volume encryption. A deployment that cannot provide those controls must treat local persistence as unsupported rather than silently weakening the policy.
 
 ## Export
 

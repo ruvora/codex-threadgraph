@@ -58,3 +58,9 @@ An `alpha` policy becomes stable only when:
 3. replay is deterministic for derived numeric values;
 4. Korean and English fixture slices show no material unexplained regression;
 5. before-and-after reports and known limitations are recorded.
+
+The initial deterministic policy promotion is recorded in [Held-out calibration: corpus v1](../evidence/CALIBRATION_HELD_OUT_V1.md). This promotion covers validated envelope and query-policy behavior. It does not promote unconstrained raw-language model interpretation, which remains a live E2E concern.
+
+The initial view-performance and privacy measurements are recorded in [MCP Apps and large-graph verification v1](../evidence/LARGE_GRAPH_MCP_APPS_V1.md).
+
+The accepted `index-policy/1-alpha` ceiling measurements are recorded in [Initial indexing budget verification v1](../evidence/INDEX_BUDGET_V1.md).

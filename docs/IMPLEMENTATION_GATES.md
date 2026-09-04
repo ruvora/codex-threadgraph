@@ -32,7 +32,7 @@ Exit: no current edge exists without a complete evidence path.
 
 ## G2 — Scoped source adapter
 
-Status: core implementation complete. Live installed-plugin compatibility remains part of the release E2E gate.
+Status: deterministic gate complete. Scope denial, side-effect detection, partial coverage, and maximum 100-thread, 12-read, 120,000-character, and 1,000-candidate budgets are executable and measured. Live model-token accounting remains part of the final installed graph-open E2E when the host exposes it.
 
 - native thread list and bounded read adapter;
 - host and project identity normalization;
@@ -43,15 +43,19 @@ Status: core implementation complete. Live installed-plugin compatibility remain
 
 Exit: an out-of-scope thread cannot be read even when referenced by indexed content.
 
+Evidence: [Initial indexing budget verification v1](./evidence/INDEX_BUDGET_V1.md).
+
 ## G3 — Persistent local Registry
 
-Status: core implementation complete for versioned SQLite publication, fencing, backup migration, reopen, and interrupted-job recovery. Fine-grained source retention/deletion UX remains a release task.
+Status: complete for versioned SQLite publication, fencing, backup migration, reopen, interrupted-job recovery, terminal source scrubbing, retention inspection, and preview-confirmed indexed-thread deletion. Deletion publishes an invalidating revision and purges affected historical revisions and exports without modifying native Codex history.
 
 - versioned SQLite schema;
 - atomic publication and current revision pointer;
 - single-writer lease and fencing;
 - migration backup, reopen, and restart recovery;
 - thread, project, and full-index deletion.
+- terminal and expired-session source scrubbing;
+- revision-bound deletion preview and explicit confirmation.
 
 Exit: forced termination at every publication stage produces either the old or new complete revision, never a partial graph.
 
@@ -70,7 +74,7 @@ Exit: unchanged ranges are not reprocessed and changed evidence invalidates only
 
 ## G5 — Bounded inference
 
-Status: alpha implementation complete. The gate remains open until the held-out calibration corpus meets the documented precision targets.
+Status: deterministic policy gate complete. The sanitized evaluation-only corpus meets every documented precision target across English, Korean, and mixed-language slices. Raw-language interpretation remains part of the final live graph-open E2E rather than authority inside this policy layer.
 
 - relation-specific candidate generation;
 - confidence calibration and thresholds;
@@ -82,7 +86,7 @@ Exit: topic overlap cannot produce contradiction or supersession without the req
 
 ## G6 — Selection and specialization
 
-Status: alpha implementation complete. The gate remains open until held-out recommendation and abstention calibration meets the documented targets.
+Status: deterministic policy gate complete. Held-out recommendation correctness, blocking-conflict safety, incomplete-evidence abstention, normalization, and deterministic replay meet the documented targets across all language slices.
 
 - eligibility gate and dimensioned ranking;
 - deterministic versioned selection score and outcome thresholds;
@@ -94,9 +98,11 @@ Exit: every recommendation explains evidence, missing context, freshness, and co
 
 G5 and G6 also require the targets in [Quality and calibration](./contracts/QUALITY_AND_CALIBRATION.md).
 
+Evidence: [Held-out calibration: corpus v1](./evidence/CALIBRATION_HELD_OUT_V1.md).
+
 ## G7 — MCP and graph experience
 
-Status: alpha read-only MCP server, native-navigation boundary, view model, and accessible graph surface implemented. Large-scope latency/memory measurements and live embedded-app packaging remain open.
+Status: source-level gate complete. The MCP server exposes a decoupled render tool and portable MCP Apps resource, relation and evidence filters, an accessible bounded SVG/list surface, owner-only local storage files, and measured large-scope latency, memory, payload, and privacy budgets. Installed desktop rendering remains part of the final user-visible E2E.
 
 - read-only query API;
 - graph, evidence, candidate comparison, and empty states;
@@ -106,9 +112,11 @@ Status: alpha read-only MCP server, native-navigation boundary, view model, and 
 
 Exit: exact, extracted, and inferred relations remain distinguishable without color alone.
 
+Evidence: [MCP Apps and large-graph verification v1](./evidence/LARGE_GRAPH_MCP_APPS_V1.md).
+
 ## G8 — Optional ThreadHub adapter
 
-Status: producer-side Context Pack creation and validation implemented. An independent ThreadHub consumer compatibility run remains open.
+Status: complete. Producer export and an independent ThreadHub consumer validate the same public alpha contract without sharing code or storage. ThreadHub imports accepted content only as a candidate claim and creates no Context Snapshot or execution entity.
 
 - versioned, fingerprinted Context Pack;
 - explicit selection and export;
@@ -116,6 +124,8 @@ Status: producer-side Context Pack creation and validation implemented. An indep
 - independent failure and upgrade behavior.
 
 Exit: a forged, stale, conflicted, or unsupported pack cannot influence execution planning.
+
+Evidence: [Independent ThreadHub consumer verification v1](./evidence/THREADHUB_CONSUMER_V1.md).
 
 ## G9 — End-to-end indexing session
 

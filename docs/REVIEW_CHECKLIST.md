@@ -11,7 +11,7 @@
 - [x] Node and relation types are explicit.
 - [x] Direct thread relationships retain evidence paths.
 - [x] Contradiction and supersession require more than similarity or recency.
-- [ ] Canonical subject normalization rules need representative fixtures.
+- [x] Canonical subject normalization rules have representative English, Korean, mixed-language, NFKC, spacing, casing, and accepted-alias fixtures.
 - [x] Artifact identity separates logical project paths from content revisions across worktrees.
 - [x] Stable ID and relation revision rules are defined.
 - [x] Candidate blocking prevents unbounded all-pairs inference.
@@ -24,8 +24,8 @@
 - [x] Thread content is untrusted data.
 - [x] Indexing is bounded, incremental, and local by default.
 - [x] Unreadable, missing, and deleted are distinct.
-- [ ] Default numeric indexing budgets require measurement before acceptance.
-- [ ] Local encryption and operating-system protection expectations need a deployment decision.
+- [x] Default numeric indexing budgets have a saturated 100-thread/12-read/120,000-character/1,000-pair fixture and recorded measurements.
+- [x] Version 0.1 explicitly relies on OS account and volume protection, enforces owner-only Registry files on POSIX, and does not claim application-level encryption.
 
 ## Selection and specialization
 
@@ -33,7 +33,7 @@
 - [x] Results include recommended, ambiguous, no candidate, and incomplete.
 - [x] Recommendation and specialization do not grant authority.
 - [x] Persistent specialization requires explicit user acceptance.
-- [ ] Ranking calibration datasets and quality metrics require realistic thread fixtures.
+- [x] Ranking and abstention policies have a sanitized held-out fixture corpus, reproducible metrics, language slices, and frozen promotion thresholds.
 - [x] Provisional value formulas and promotion metrics are explicit.
 
 ## Persistence and recovery
@@ -48,7 +48,9 @@
 - [x] Evidence inspection and failure states are first-class.
 - [x] Navigation sends no prompt.
 - [x] Context Pack excludes execution permissions.
-- [ ] Visual layout and performance budgets require a tested prototype.
+- [x] ThreadHub independently verifies scope, producer, digest, content-addressed ID, freshness, conflicts, and missing sources before any Registry mutation.
+- [x] Accepted imports remain candidate provenance and cannot create a Context Snapshot or execution entity.
+- [x] The MCP Apps SVG/list prototype has bounded rendering and measured 5,000-node/10,000-relation latency, memory, payload, and privacy budgets.
 - [x] Stable `thread/list` and `thread/read` behavior is verified against Codex 0.152.1 without loading or starting a thread.
 
 No unchecked item blocks the design baseline. Each unchecked item is deliberately assigned to an implementation gate and must be resolved before that gate exits.

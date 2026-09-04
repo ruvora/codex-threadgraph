@@ -17,6 +17,15 @@ test("G7 exposes distinct non-color relation semantics", () => {
   assert.match(view.edges[0].accessibleLabel, /inferred, medium confidence/);
 });
 
+test("G7 relation filters are deterministic and graph labels redact secrets", () => {
+  const filtered = buildGraphViewModel({ ...revision, nodes: [{ ...revision.nodes[0], canonicalSubjectKey: "owner@example.com ghp_abcdefghijklmnop" }] }, { relationKinds: ["related_to"], evidenceClasses: ["inferred"] });
+  assert.deepEqual(filtered.filters, { relationKinds: ["related_to"], evidenceClasses: ["inferred"] });
+  assert.equal(filtered.edges.length, 1);
+  assert.equal(filtered.nodes[0].label.includes("owner@example.com"), false);
+  assert.equal(filtered.nodes[0].label.includes("ghp_"), false);
+  assert.throws(() => buildGraphViewModel(revision, { relationKinds: ["execute"] }), { code: "RELATION_FILTER_INVALID" });
+});
+
 test("G7 distinguishes empty states", () => {
   assert.equal(buildGraphViewModel(null).state, "no_index");
   assert.equal(buildGraphViewModel({ ...revision, nodes: [], relations: [] }).state, "no_threads");
@@ -64,14 +73,22 @@ test("G7 MCP server exposes only local graph tools and no native execution autho
   lines.on("line", (line) => responses.push(JSON.parse(line)));
   child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: {} })}\n`);
   child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} })}\n`);
+  child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 3, method: "resources/list", params: {} })}\n`);
+  child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 4, method: "resources/read", params: { uri: "ui://threadgraph/graph.html" } })}\n`);
   await new Promise((resolve, reject) => {
     const deadline = setTimeout(() => reject(new Error("MCP smoke test timed out")), 2000);
     const poll = setInterval(() => {
-      if (responses.length >= 2) { clearInterval(poll); clearTimeout(deadline); resolve(); }
+      if (responses.length >= 4) { clearInterval(poll); clearTimeout(deadline); resolve(); }
     }, 10);
   });
   child.kill("SIGTERM");
   const names = responses.find((item) => item.id === 2).result.tools.map((item) => item.name);
-  assert.deepEqual(names, ["threadgraph_get_graph", "threadgraph_inspect_evidence", "threadgraph_select_thread", "threadgraph_prepare_index", "threadgraph_publish_index", "threadgraph_cancel_index"]);
+  assert.deepEqual(names, ["threadgraph_get_graph", "threadgraph_inspect_evidence", "threadgraph_select_thread", "threadgraph_prepare_index", "threadgraph_publish_index", "threadgraph_cancel_index", "threadgraph_get_retention", "threadgraph_preview_thread_deletion", "threadgraph_delete_thread_index", "threadgraph_render_graph"]);
   assert.equal(names.some((name) => /start|resume|send|execute/.test(name)), false);
+  const renderTool = responses.find((item) => item.id === 2).result.tools.find((item) => item.name === "threadgraph_render_graph");
+  assert.equal(renderTool._meta.ui.resourceUri, "ui://threadgraph/graph.html");
+  const resource = responses.find((item) => item.id === 4).result.contents[0];
+  assert.equal(resource.mimeType, "text/html;profile=mcp-app");
+  assert.match(resource.text, /ui\/notifications\/tool-result/);
+  assert.match(resource.text, /tools\/call/);
 });

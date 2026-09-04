@@ -11,11 +11,13 @@ test("G8 creates deterministic provenance-only Context Packs", () => {
   assert.match(first.packId, /^ctx_/);
   assert.equal(validateContextPack(first, { scopeId: "scope", currentTime: "2026-09-05T00:00:00.000Z" }).executionAuthority, false);
   assert.notEqual(createContextPack({ ...input, purpose: "different purpose" }).packId, first.packId);
+  assert.notEqual(createContextPack({ ...input, derivedContent: { summary: "PostgreSQL was selected." } }).packId, first.packId);
 });
 
 test("G8 requires explicit selection and forbids execution authority", () => {
   assert.throws(() => createContextPack({ ...input, explicitSelection: false }), { code: "CONTEXT_PACK_SELECTION_REQUIRED" });
   assert.throws(() => createContextPack({ ...input, derivedContent: { permissions: ["write"] } }), { code: "CONTEXT_PACK_AUTHORITY_FORBIDDEN" });
+  assert.throws(() => createContextPack({ ...input, buildIdentity: "unknown/1" }), { code: "CONTEXT_PACK_INVALID" });
   const forgedAuthority = { ...createContextPack(input), derivedContent: { permissions: ["write"] } };
   assert.equal(validateContextPack(forgedAuthority, { scopeId: "scope" }).code, "CONTEXT_PACK_AUTHORITY_FORBIDDEN");
 });
@@ -28,6 +30,9 @@ test("G8 rejects forged, unsupported, stale, scoped, and conflicted packs", () =
   assert.equal(validateContextPack(pack, { scopeId: "scope", currentTime: "2027-09-04T00:00:00.000Z" }).code, "CONTEXT_PACK_STALE");
   const conflicted = createContextPack({ ...input, unresolvedConflicts: ["decision conflict"] });
   assert.equal(validateContextPack(conflicted, { scopeId: "scope" }).code, "CONTEXT_PACK_CONFLICTED");
+  const missing = createContextPack({ ...input, missingSources: ["evidence unavailable"] });
+  assert.equal(validateContextPack(missing, { scopeId: "scope" }).code, "CONTEXT_PACK_SOURCE_MISSING");
+  assert.equal(validateContextPack(missing, { scopeId: "scope", allowMissingSources: true }).decision, "partial");
 });
 
 test("G8 records an export before returning and reuses an identical record", () => {
