@@ -4,7 +4,7 @@ Implementation proceeds only after the preceding gate has durable failure-path t
 
 ## G0 — Contract fixtures
 
-Status: complete. The red baseline was recorded before implementation, and the contract kernel now satisfies every seed fixture. G1 and G2 remain open for immutable graph revisions and the native scoped-source adapter.
+Status: complete. The red baseline was recorded before implementation, and the contract kernel now satisfies every seed fixture.
 
 - malformed scope and out-of-scope reference rejection;
 - indexing starts only for first project-graph open and explicit refresh;
@@ -118,6 +118,8 @@ Status: producer-side Context Pack creation and validation implemented. An indep
 Exit: a forged, stale, conflicted, or unsupported pack cannot influence execution planning.
 
 ## G9 — End-to-end indexing session
+
+Status: core implementation complete. The durable two-stage session, native App Server adapter, deterministic G2–G6 composition, atomic publication, and local-only MCP tools are covered by failure-path and real-host forward tests. Installed-plugin E2E remains the next release gate.
 
 - durable prepare, publish, cancel, failure, and interruption states;
 - one frozen request and source fingerprint per session;

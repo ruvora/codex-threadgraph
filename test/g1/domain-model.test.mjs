@@ -120,6 +120,7 @@ test("G1 typed IDs distinguish entity kinds", async () => {
   assert.equal(isTypedId(projectId, "project"), true);
   assert.equal(isTypedId(threadId, "thread"), true);
   assert.equal(isTypedId(threadId, "project"), false);
+  assert.equal(isTypedId(`idx_${"a".repeat(52)}`, "indexSession"), true);
   assert.throws(() => assertTypedId("thr_bad", "thread"), { code: "ID_INVALID" });
 });
 

@@ -11,6 +11,7 @@ const patterns = {
   relation: new RegExp(`^rel_${hashPattern}$`),
   relationRevision: new RegExp(`^rlv_${hashPattern}$`),
   graphRevision: new RegExp(`^grv_${hashPattern}$`),
+  indexSession: new RegExp(`^idx_${hashPattern}$`),
   query: new RegExp(`^qry_${hashPattern}$`),
   selection: new RegExp(`^sel_${hashPattern}$`),
   export: new RegExp(`^ctx_${hashPattern}$`),
