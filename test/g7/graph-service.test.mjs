@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import readline from "node:readline";
 import test from "node:test";
 import { GraphService, buildGraphViewModel } from "../../src/graph-service.mjs";
@@ -38,7 +41,8 @@ test("G7 navigation requires explicit action and sends no prompt", async () => {
 });
 
 test("G7 MCP server advertises only read-only graph tools", async () => {
-  const child = spawn(process.execPath, ["server/threadgraph-mcp.mjs"], { cwd: process.cwd(), stdio: ["pipe", "pipe", "inherit"] });
+  const registryPath = join(mkdtempSync(join(tmpdir(), "threadgraph-mcp-")), "graph.db");
+  const child = spawn(process.execPath, ["server/threadgraph-mcp.mjs"], { cwd: process.cwd(), env: { ...process.env, THREADGRAPH_REGISTRY_PATH: registryPath }, stdio: ["pipe", "pipe", "inherit"] });
   const lines = readline.createInterface({ input: child.stdout });
   const responses = [];
   lines.on("line", (line) => responses.push(JSON.parse(line)));

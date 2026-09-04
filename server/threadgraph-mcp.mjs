@@ -1,11 +1,15 @@
 #!/usr/bin/env node
 import readline from "node:readline";
+import { mkdirSync } from "node:fs";
+import { homedir } from "node:os";
+import { dirname, join } from "node:path";
 import { GraphRegistry } from "../src/registry.mjs";
 import { GraphService, buildGraphViewModel } from "../src/graph-service.mjs";
 
-const registryPath = process.env.THREADGRAPH_REGISTRY_PATH;
-const registry = registryPath ? new GraphRegistry(registryPath) : null;
-const service = registry ? new GraphService({ registry }) : null;
+const registryPath = process.env.THREADGRAPH_REGISTRY_PATH ?? join(process.env.CODEX_HOME ?? join(homedir(), ".codex"), "threadgraph", "graph.db");
+mkdirSync(dirname(registryPath), { recursive: true });
+const registry = new GraphRegistry(registryPath);
+const service = new GraphService({ registry });
 const tools = [
   { name: "threadgraph_get_graph", description: "Read the current published graph for one project scope.", inputSchema: { type: "object", required: ["scopeId"], properties: { scopeId: { type: "string" } }, additionalProperties: false } },
   { name: "threadgraph_inspect_evidence", description: "Read provenance for one evidence item without source mutation.", inputSchema: { type: "object", required: ["scopeId", "evidenceId"], properties: { scopeId: { type: "string" }, evidenceId: { type: "string" } }, additionalProperties: false } },
@@ -15,7 +19,6 @@ const tools = [
 function send(message) { process.stdout.write(`${JSON.stringify(message)}\n`); }
 function content(value) { return { content: [{ type: "text", text: JSON.stringify(value) }], structuredContent: value }; }
 async function call(name, args) {
-  if (!service) throw Object.assign(new Error("THREADGRAPH_REGISTRY_PATH is not configured"), { code: "REGISTRY_NOT_CONFIGURED" });
   if (name === "threadgraph_get_graph") {
     const graph = service.getGraph(args.scopeId);
     return content(graph.state === "ready" ? { ...graph, view: buildGraphViewModel(graph.revision) } : graph);
