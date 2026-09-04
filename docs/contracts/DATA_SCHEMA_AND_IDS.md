@@ -24,12 +24,15 @@ id        = thr_ptb37vxwbn6pfjteocmhhn5fdmzfg7ilunakyokctdozld5mzrha
 | Evidence Item | `evd_` + hash of observation ID, item locator, bounded content digest |
 | Claim | `clm_` + hash of claim kind, canonical subject ID, normalized predicate and object, evidence digest, extractor version |
 | Semantic Entity | `ent_` + UUIDv7 assigned when the entity is first accepted |
+| Node Revision | `nrv_` + hash of logical node ID, evidence digest, attributes digest, lifecycle, schema policy |
 | Logical Relation | `rel_` + hash of scope, source ID, target ID, relation kind |
 | Relation Revision | `rlv_` + hash of logical relation, evidence digest, policy version, lifecycle |
-| Graph Revision | `grv_` + hash of scope, parent revision, policies, sorted current node/edge revision IDs |
+| Graph Revision | `grv_` + hash of scope, parent revision, observation cutoff, policies, sorted current node/edge revision IDs |
 | Goal Query | `qry_` + hash of graph revision, normalized goal, requirements, query policy |
 | Selection Report | `sel_` + hash of query ID, candidate vector digest, selection policy |
 | Export | `ctx_` + hash of graph revision, selected evidence IDs, export policy |
+
+Graph nodes use these logical identity kinds: `project` → Project ID, `thread` → Thread ID, `topic` → Semantic Entity ID, and `decision`, `constraint`, `artifact`, and `result` → Claim ID. The node kind and ID prefix must agree; a merely well-formed ID from another kind is rejected.
 
 Semantic entity nodes receive UUIDv7 IDs when first accepted. Their labels and aliases are mutable revisions, so they are not content-addressed.
 
@@ -116,6 +119,10 @@ A Goal Query stores the original goal digest and a validated requirement vector.
 ```
 
 `relationKey` identifies the logical source-target-kind tuple. `revisionId` also includes evidence, confidence, policy, and lifecycle. New evidence creates a new relation revision without overwriting history.
+
+Node and Relation Revision IDs are computed before the containing Graph Revision. The published projection adds `includedInRevisionId` after the Graph Revision ID is computed. This containment field is verified against the enclosing revision and is not used as an input to its own child revision ID, avoiding a circular hash dependency.
+
+Observation and Evidence Item IDs are recomputed from their provenance before publication. A correctly shaped `obs_` or `evd_` string is not sufficient when its hash does not match the bounded source range, digest, redaction version, observation, or item locator.
 
 ## Null and unknown
 

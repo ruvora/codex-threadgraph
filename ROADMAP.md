@@ -16,6 +16,7 @@
 
 ## 0.2 — Local persistent graph
 
+- [x] G1 immutable domain model, evidence closure, and revision fingerprints
 - Versioned SQLite schema
 - Incremental indexing and source invalidation
 - Deterministic exact-edge extraction

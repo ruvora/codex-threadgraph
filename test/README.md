@@ -4,6 +4,7 @@ G0 was established as a red baseline before the contract kernel existed. The bas
 
 - `npm run test:fixtures` validates that the contract corpus is complete, well-formed, and unambiguous. It must pass in G0.
 - `npm run test:g0` binds every fixture group to a named core capability and must pass.
+- `npm run test:g1` verifies strict envelopes, typed identities, immutable Graph Revisions, evidence closure, and relation lifecycle.
 - `npm test` runs both layers and any later test suites.
 
 Do not weaken an expected result merely to turn the suite green. A contract change requires the governing design document, fixture, and rationale to change together.

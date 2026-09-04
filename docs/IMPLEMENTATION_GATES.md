@@ -20,6 +20,8 @@ Exit: tests fail for the intended reasons against the unimplemented core.
 
 ## G1 — Domain model and immutable revisions
 
+Status: complete. The immutable domain builder, strict Source and Extraction Envelope validators, typed IDs, evidence closure, deterministic fingerprints, and Relation Revision transitions are implemented and covered by failure-path tests.
+
 - typed IDs and schema validators;
 - Graph Revision construction and evidence closure;
 - relation lifecycle and invalidation;

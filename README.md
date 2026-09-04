@@ -68,7 +68,7 @@ The first release updates a project graph only on its first open or an explicit 
 
 ## Status
 
-`0.1.0` design baseline, read-only skill scaffold, and passing G0 contract kernel. Domain contracts and G0–G8 implementation gates are documented. Immutable graph revisions, a native source adapter, persistent index, MCP server, and interactive graph application are planned but are not advertised as implemented.
+`0.1.0` design baseline with a passing G0 contract kernel and G1 immutable domain model. Strict Source and Extraction Envelopes, typed IDs, evidence closure, deterministic Graph Revisions, and relation lifecycle are implemented. The native source adapter, persistent index, MCP server, and interactive graph application remain planned and are not advertised as implemented.
 
 ## Author
 

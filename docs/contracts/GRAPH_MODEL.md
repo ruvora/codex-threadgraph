@@ -30,7 +30,7 @@ Inferred edges require confidence and explanation:
 
 ## Required fields
 
-Every node records a stable ID, kind, scope ID, canonical subject key, creation revision, lifecycle state, and provenance references. Every edge records a stable ID, source node, target node, relation kind, evidence class, observation cutoff, supporting evidence IDs, and creation revision. Inferred edges additionally record calibrated confidence, explanation, inference version, and materially plausible alternatives.
+Every node records a stable logical ID, immutable Node Revision ID, kind, scope ID, canonical subject key, lifecycle state, provenance references, and containing Graph Revision ID. Every edge records a stable Logical Relation ID, immutable Relation Revision ID, source node, target node, relation kind, evidence class, supporting evidence IDs, lifecycle, and containing Graph Revision ID. Inferred edges additionally record calibrated confidence, explanation, inference version, and materially plausible alternatives.
 
 IDs are content-derived only when the underlying identity is immutable. Mutable labels, summaries, confidence, and titles never participate in native thread identity.
 
@@ -47,7 +47,7 @@ IDs are content-derived only when the underlying identity is immutable. Mutable 
 
 ## Evidence closure
 
-Every current derived node and edge must resolve to immutable Evidence Items. An Evidence Item resolves to an Observation, and an Observation resolves to an authorized native source range or artifact identity. A broken path invalidates the dependent projection.
+Every current node and edge must resolve to immutable Evidence Items. An Evidence Item resolves to an Observation, and an Observation resolves to an authorized native source range or artifact identity inside the Graph Revision scope and cutoff. Observation and Evidence Item IDs are recomputed from provenance. A missing, unauthorized, out-of-scope, cutoff-exceeding, or hash-mismatched path rejects publication or invalidates the dependent projection.
 
 ## Revision behavior
 
