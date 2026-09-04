@@ -36,7 +36,7 @@ export async function benchmarkIndexing() {
   const registryPath = join(mkdtempSync(join(tmpdir(), "threadgraph-index-benchmark-")), "graph.db");
   const registry = new GraphRegistry(registryPath);
   const host = benchmarkHost();
-  const pipeline = new IndexingPipeline({ registry, host, hostId: "benchmark-host", canonicalProjectId: "/benchmark/project", workerId: "benchmark-worker" });
+  const pipeline = new IndexingPipeline({ registry, host, hostId: "benchmark-host", canonicalProjectId: "saved-project", canonicalProjectPath: "/benchmark/project", workerId: "benchmark-worker" });
   const heapBefore = process.memoryUsage().heapUsed;
   const started = performance.now();
   const prepared = await pipeline.prepare({ triggerKind: "initial_graph_open", requestOrigin: "benchmark", observationCutoff: "2026-09-04T01:00:00.000Z" });

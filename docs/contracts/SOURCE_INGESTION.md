@@ -23,12 +23,15 @@ Every indexing request records:
 
 - `scopeKind`: `project` for the first implementation;
 - canonical project identity when applicable;
+- canonical absolute project path as a separate non-authoritative read scope;
 - deterministic project-membership rule;
 - request origin and observation time;
 - maximum threads and source range budget;
 - whether derived records may persist locally.
 
 An indexing request cannot widen its own scope. A link to an out-of-scope thread may be recorded as an unresolved reference but must not trigger a read.
+
+Project identity and filesystem location are not interchangeable. The stable host project ID is hashed into the graph scope. The absolute canonical path is validated independently and supplied only to the local App Server for `cwd` filtering. Failure to start that App Server is returned as a structured source failure and cannot terminate the outer MCP server.
 
 ## Index update triggers
 

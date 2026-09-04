@@ -43,6 +43,7 @@ allowed trigger
 Each indexing job freezes:
 
 - canonical project ID;
+- canonical absolute project path used only as the App Server read scope;
 - trigger kind and origin;
 - host identity and protocol generation;
 - observation cutoff;
@@ -52,6 +53,8 @@ Each indexing job freezes:
 - deterministic request fingerprint.
 
 Thread changes after the cutoff belong to a later explicit refresh.
+
+The project ID and path are separate contract fields. The ID contributes to durable graph identity; the path is validated as an existing absolute directory and is used only as the App Server `cwd` and `thread/list` scope. Neither field may be substituted for the other.
 
 ## Provisional first-development budget
 

@@ -82,16 +82,18 @@ export class IndexingPipeline {
   #host;
   #hostId;
   #canonicalProjectId;
+  #canonicalProjectPath;
   #budget;
   #workerId;
   #sessionTtlMs;
   #active = new Map();
 
-  constructor({ registry, host, hostId, canonicalProjectId, budget = {}, workerId = "threadgraph-mcp", sessionTtlMs = 10 * 60 * 1000 }) {
+  constructor({ registry, host, hostId, canonicalProjectId, canonicalProjectPath, budget = {}, workerId = "threadgraph-mcp", sessionTtlMs = 10 * 60 * 1000 }) {
     this.#registry = registry;
     this.#host = host;
     this.#hostId = hostId;
     this.#canonicalProjectId = canonicalProjectId;
+    this.#canonicalProjectPath = canonicalProjectPath;
     this.#budget = { ...DEFAULT_BUDGET, ...budget };
     this.#workerId = workerId;
     this.#sessionTtlMs = sessionTtlMs;
@@ -111,7 +113,7 @@ export class IndexingPipeline {
       userInitiated: triggerKind === "explicit_refresh",
     });
     if (decision.decision !== "allow") fail(decision.code, "Indexing trigger is not authorized", { nextAction: decision.nextAction });
-    const request = { scopeId, hostId: this.#hostId, canonicalProjectId: this.#canonicalProjectId, triggerKind, requestOrigin, observationCutoff: cutoff, parentRevisionId: current?.id ?? null, budget: this.#budget, policies };
+    const request = { scopeId, hostId: this.#hostId, canonicalProjectId: this.#canonicalProjectId, canonicalProjectPath: this.#canonicalProjectPath, triggerKind, requestOrigin, observationCutoff: cutoff, parentRevisionId: current?.id ?? null, budget: this.#budget, policies };
     const requestFingerprint = fingerprint("index-request/2", request);
     if (this.#active.has(requestFingerprint)) return this.#active.get(requestFingerprint);
     const operation = this.#prepareAuthorized(adapter, request, requestFingerprint).finally(() => this.#active.delete(requestFingerprint));

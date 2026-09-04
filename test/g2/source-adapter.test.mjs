@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
+import { CodexAppServerHost } from "../../src/codex-app-server-host.mjs";
 import { IndexRequestCoordinator, ScopedSourceAdapter } from "../../src/source-adapter.mjs";
 
 const hostId = "host-local";
@@ -88,4 +92,11 @@ test("G2 coalesces equivalent authorized requests and rejects implicit refresh",
   assert.equal(runs, 1);
   const published = new IndexRequestCoordinator({ publishedScopes: new Set(["prj_x"]) });
   assert.throws(() => published.request({ ...request, triggerKind: "goal_query" }), { code: "TRIGGER_NOT_AUTHORIZED" });
+});
+
+test("G2 contains App Server spawn failures instead of closing the MCP process", async () => {
+  const projectPath = mkdtempSync(join(tmpdir(), "threadgraph-host-start-"));
+  const host = new CodexAppServerHost({ codexPath: join(projectPath, "missing-codex"), projectPath });
+  await assert.rejects(host.listThreads({ projectId: "scope", limit: 1 }), { code: "HOST_START_FAILED" });
+  await host.close();
 });

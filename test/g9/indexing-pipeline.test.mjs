@@ -54,10 +54,12 @@ function extractionFor(source) {
 test("G9 prepare and publish connect scoped sources to one atomic Graph Revision", async () => {
   const { registry } = registryFixture();
   const host = hostFixture();
-  const pipeline = new IndexingPipeline({ registry, host, hostId: "local", canonicalProjectId: "/repo", workerId: "worker-a" });
+  const pipeline = new IndexingPipeline({ registry, host, hostId: "local", canonicalProjectId: "saved-project", canonicalProjectPath: "/repo", workerId: "worker-a" });
   const prepared = await pipeline.prepare({ triggerKind: "initial_graph_open", requestOrigin: "graph_open", observationCutoff: "2026-09-04T01:00:00.000Z" });
   assert.equal(prepared.status, "prepared");
   assert.equal(prepared.sources.length, 2);
+  assert.equal(registry.getIndexSession(prepared.sessionId).payload.request.canonicalProjectId, "saved-project");
+  assert.equal(registry.getIndexSession(prepared.sessionId).payload.request.canonicalProjectPath, "/repo");
   assert.equal(registry.currentRevision(prepared.scopeId), null);
   const result = await pipeline.publish({ sessionId: prepared.sessionId, extractions: prepared.sources.map(extractionFor) });
   assert.equal(result.status, "published");
@@ -74,7 +76,7 @@ test("G9 prepare and publish connect scoped sources to one atomic Graph Revision
 
 test("G9 a Graph Query cannot authorize indexing and initial open cannot overwrite a graph", async () => {
   const { registry } = registryFixture();
-  const pipeline = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "/repo" });
+  const pipeline = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "saved-project", canonicalProjectPath: "/repo" });
   await assert.rejects(pipeline.prepare({ triggerKind: "goal_query", requestOrigin: "query" }), { code: "TRIGGER_NOT_AUTHORIZED" });
   const prepared = await pipeline.prepare({ triggerKind: "initial_graph_open", requestOrigin: "graph_open", observationCutoff: "2026-09-04T01:00:00.000Z" });
   await pipeline.publish({ sessionId: prepared.sessionId, extractions: prepared.sources.map(extractionFor) });
@@ -84,7 +86,7 @@ test("G9 a Graph Query cannot authorize indexing and initial open cannot overwri
 
 test("G9 extraction from another session fails terminally before publication", async () => {
   const { registry } = registryFixture();
-  const pipeline = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "/repo" });
+  const pipeline = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "saved-project", canonicalProjectPath: "/repo" });
   const prepared = await pipeline.prepare({ triggerKind: "initial_graph_open", requestOrigin: "graph_open", observationCutoff: "2026-09-04T01:00:00.000Z" });
   const forged = prepared.sources.map(extractionFor);
   forged[0].sourceEnvelopeDigest = `sha256:${"f".repeat(64)}`;
@@ -97,7 +99,7 @@ test("G9 extraction from another session fails terminally before publication", a
 
 test("G9 persisted session tampering is detected before graph construction", async () => {
   const { path, registry } = registryFixture();
-  const pipeline = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "/repo" });
+  const pipeline = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "saved-project", canonicalProjectPath: "/repo" });
   const prepared = await pipeline.prepare({ triggerKind: "initial_graph_open", requestOrigin: "graph_open", observationCutoff: "2026-09-04T01:00:00.000Z" });
   const attacker = new DatabaseSync(path);
   const row = attacker.prepare("SELECT payload_json FROM index_sessions WHERE session_id=?").get(prepared.sessionId);
@@ -113,7 +115,7 @@ test("G9 persisted session tampering is detected before graph construction", asy
 test("G9 scope is revalidated immediately before publication", async () => {
   const { registry } = registryFixture();
   const host = hostFixture();
-  const pipeline = new IndexingPipeline({ registry, host, hostId: "local", canonicalProjectId: "/repo" });
+  const pipeline = new IndexingPipeline({ registry, host, hostId: "local", canonicalProjectId: "saved-project", canonicalProjectPath: "/repo" });
   const prepared = await pipeline.prepare({ triggerKind: "initial_graph_open", requestOrigin: "graph_open", observationCutoff: "2026-09-04T01:00:00.000Z" });
   host.hide("native-b");
   await assert.rejects(pipeline.publish({ sessionId: prepared.sessionId, extractions: prepared.sources.map(extractionFor) }), { code: "SOURCE_SCOPE_REVALIDATION_FAILED" });
@@ -123,7 +125,7 @@ test("G9 scope is revalidated immediately before publication", async () => {
 
 test("G9 cancellation is terminal and releases the prepared session", async () => {
   const { registry } = registryFixture();
-  const pipeline = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "/repo" });
+  const pipeline = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "saved-project", canonicalProjectPath: "/repo" });
   const prepared = await pipeline.prepare({ triggerKind: "initial_graph_open", requestOrigin: "graph_open", observationCutoff: "2026-09-04T01:00:00.000Z" });
   assert.equal(pipeline.cancel(prepared.sessionId).status, "cancelled");
   await assert.rejects(pipeline.publish({ sessionId: prepared.sessionId, extractions: [] }), { code: "INDEX_SESSION_TERMINAL" });
@@ -134,9 +136,9 @@ test("G9 source preparation failure releases the writer lease", async () => {
   const { registry } = registryFixture();
   const brokenHost = hostFixture();
   brokenHost.listThreads = async () => { throw Object.assign(new Error("host unavailable"), { code: "HOST_UNAVAILABLE" }); };
-  const broken = new IndexingPipeline({ registry, host: brokenHost, hostId: "local", canonicalProjectId: "/repo", workerId: "broken-worker" });
+  const broken = new IndexingPipeline({ registry, host: brokenHost, hostId: "local", canonicalProjectId: "saved-project", canonicalProjectPath: "/repo", workerId: "broken-worker" });
   await assert.rejects(broken.prepare({ triggerKind: "initial_graph_open", requestOrigin: "graph_open", observationCutoff: "2026-09-04T01:00:00.000Z" }), { code: "HOST_UNAVAILABLE" });
-  const recovered = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "/repo", workerId: "recovery-worker" });
+  const recovered = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "saved-project", canonicalProjectPath: "/repo", workerId: "recovery-worker" });
   const prepared = await recovered.prepare({ triggerKind: "initial_graph_open", requestOrigin: "graph_open", observationCutoff: "2026-09-04T01:00:00.000Z" });
   assert.equal(prepared.status, "prepared");
   registry.close();
@@ -144,7 +146,7 @@ test("G9 source preparation failure releases the writer lease", async () => {
 
 test("G9 explicit refresh links a new revision to the current parent", async () => {
   const { registry } = registryFixture();
-  const pipeline = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "/repo" });
+  const pipeline = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "saved-project", canonicalProjectPath: "/repo" });
   const first = await pipeline.prepare({ triggerKind: "initial_graph_open", requestOrigin: "graph_open", observationCutoff: "2026-09-04T01:00:00.000Z" });
   const firstResult = await pipeline.publish({ sessionId: first.sessionId, extractions: first.sources.map(extractionFor) });
   const refresh = await pipeline.prepare({ triggerKind: "explicit_refresh", requestOrigin: "refresh_button", observationCutoff: "2026-09-04T02:00:00.000Z" });
@@ -156,7 +158,7 @@ test("G9 explicit refresh links a new revision to the current parent", async () 
 
 test("G9 an expired prepared session cannot publish", async () => {
   const { registry } = registryFixture();
-  const pipeline = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "/repo", sessionTtlMs: 20 });
+  const pipeline = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "saved-project", canonicalProjectPath: "/repo", sessionTtlMs: 20 });
   const prepared = await pipeline.prepare({ triggerKind: "initial_graph_open", requestOrigin: "graph_open", observationCutoff: "2026-09-04T01:00:00.000Z" });
   await new Promise((resolve) => setTimeout(resolve, 30));
   await assert.rejects(pipeline.publish({ sessionId: prepared.sessionId, extractions: prepared.sources.map(extractionFor) }), { code: "INDEX_SESSION_EXPIRED" });

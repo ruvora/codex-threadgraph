@@ -27,6 +27,7 @@ The session records:
 - opaque session ID;
 - immutable request fingerprint;
 - canonical project and host identity;
+- canonical absolute project path used only for the read-only host scope;
 - authorized trigger and request origin;
 - observation cutoff and parent Graph Revision;
 - frozen policy and resource budget;
@@ -39,6 +40,8 @@ The current Codex Turn receives source data and a session ID, not write authorit
 ## Validation rules
 
 - only `initial_graph_open` and explicit `explicit_refresh` may prepare a session;
+- `canonicalProjectId` and `canonicalProjectPath` are both required; the ID defines graph identity while the validated absolute path defines App Server scope;
+- a native project ID used as a path, a relative path, a missing path, or a non-directory path fails before App Server creation;
 - an initial open is rejected when a current revision already exists;
 - every semantic Source Envelope requires exactly one matching Extraction Envelope;
 - an Extraction Envelope from another session or unknown source digest is rejected;
