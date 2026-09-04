@@ -111,7 +111,7 @@ export class IndexingPipeline {
       userInitiated: triggerKind === "explicit_refresh",
     });
     if (decision.decision !== "allow") fail(decision.code, "Indexing trigger is not authorized", { nextAction: decision.nextAction });
-    const request = { scopeId, triggerKind, requestOrigin, observationCutoff: cutoff, parentRevisionId: current?.id ?? null, budget: this.#budget, policies };
+    const request = { scopeId, hostId: this.#hostId, canonicalProjectId: this.#canonicalProjectId, triggerKind, requestOrigin, observationCutoff: cutoff, parentRevisionId: current?.id ?? null, budget: this.#budget, policies };
     const requestFingerprint = fingerprint("index-request/2", request);
     if (this.#active.has(requestFingerprint)) return this.#active.get(requestFingerprint);
     const operation = this.#prepareAuthorized(adapter, request, requestFingerprint).finally(() => this.#active.delete(requestFingerprint));
@@ -157,6 +157,7 @@ export class IndexingPipeline {
       });
     } catch (error) {
       try { this.#registry.transitionJob(jobId, "failed", { code: error.code ?? "SOURCE_FAILURE", message: error.message }); } catch {}
+      this.#registry.releaseLease(lease);
       throw error;
     }
   }

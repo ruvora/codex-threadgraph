@@ -125,3 +125,15 @@ test("G9 cancellation is terminal and releases the prepared session", async () =
   await assert.rejects(pipeline.publish({ sessionId: prepared.sessionId, extractions: [] }), { code: "INDEX_SESSION_TERMINAL" });
   registry.close();
 });
+
+test("G9 source preparation failure releases the writer lease", async () => {
+  const { registry } = registryFixture();
+  const brokenHost = hostFixture();
+  brokenHost.listThreads = async () => { throw Object.assign(new Error("host unavailable"), { code: "HOST_UNAVAILABLE" }); };
+  const broken = new IndexingPipeline({ registry, host: brokenHost, hostId: "local", canonicalProjectId: "/repo", workerId: "broken-worker" });
+  await assert.rejects(broken.prepare({ triggerKind: "initial_graph_open", requestOrigin: "graph_open", observationCutoff: "2026-09-04T01:00:00.000Z" }), { code: "HOST_UNAVAILABLE" });
+  const recovered = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "/repo", workerId: "recovery-worker" });
+  const prepared = await recovered.prepare({ triggerKind: "initial_graph_open", requestOrigin: "graph_open", observationCutoff: "2026-09-04T01:00:00.000Z" });
+  assert.equal(prepared.status, "prepared");
+  registry.close();
+});

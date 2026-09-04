@@ -167,6 +167,11 @@ export class GraphRegistry {
     }
   }
 
+  releaseLease(lease) {
+    return this.#db.prepare("DELETE FROM writer_leases WHERE scope_id=? AND worker_id=? AND lease_token=? AND generation=?")
+      .run(lease.scopeId, lease.workerId, lease.leaseToken, lease.generation).changes === 1;
+  }
+
   createIndexSession(session, now = new Date().toISOString()) {
     this.#assertLease(session.lease);
     this.#db.prepare(`INSERT INTO index_sessions(
