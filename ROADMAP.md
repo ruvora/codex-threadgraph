@@ -11,7 +11,7 @@
 - [x] Concrete graph-generation pipeline, identity schema, value formulas, and worked example
 - [x] G0 seed fixture corpus and executable red contract suite
 - [x] G0 contract kernel satisfies all seed fixtures
-- [ ] Calibrated extraction, relation, and selection fixture corpus
+- [x] Calibrated extraction-boundary, normalization, relation, and selection fixture corpus
 - [x] Real thread-list and thread-read forward test against Codex 0.152.1
 - [x] Installed-cache MCP discovery and real-scope indexing E2E
 - [ ] New-task Codex desktop plugin discovery and graph-open E2E
@@ -24,7 +24,7 @@
 - [x] Deterministic exact-edge extraction
 - [x] Bounded semantic inference implementation
 - [x] Durable end-to-end prepare, extract, validate, and publish pipeline
-- [ ] Held-out inference and selection calibration
+- [x] Held-out inference and selection policy calibration
 - [ ] Fine-grained source retention and thread deletion UX
 
 ## 0.3 — Interactive graph

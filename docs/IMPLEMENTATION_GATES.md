@@ -70,7 +70,7 @@ Exit: unchanged ranges are not reprocessed and changed evidence invalidates only
 
 ## G5 — Bounded inference
 
-Status: alpha implementation complete. The gate remains open until the held-out calibration corpus meets the documented precision targets.
+Status: deterministic policy gate complete. The sanitized evaluation-only corpus meets every documented precision target across English, Korean, and mixed-language slices. Raw-language interpretation remains part of the final live graph-open E2E rather than authority inside this policy layer.
 
 - relation-specific candidate generation;
 - confidence calibration and thresholds;
@@ -82,7 +82,7 @@ Exit: topic overlap cannot produce contradiction or supersession without the req
 
 ## G6 — Selection and specialization
 
-Status: alpha implementation complete. The gate remains open until held-out recommendation and abstention calibration meets the documented targets.
+Status: deterministic policy gate complete. Held-out recommendation correctness, blocking-conflict safety, incomplete-evidence abstention, normalization, and deterministic replay meet the documented targets across all language slices.
 
 - eligibility gate and dimensioned ranking;
 - deterministic versioned selection score and outcome thresholds;
@@ -93,6 +93,8 @@ Status: alpha implementation complete. The gate remains open until held-out reco
 Exit: every recommendation explains evidence, missing context, freshness, and conflicts.
 
 G5 and G6 also require the targets in [Quality and calibration](./contracts/QUALITY_AND_CALIBRATION.md).
+
+Evidence: [Held-out calibration: corpus v1](./evidence/CALIBRATION_HELD_OUT_V1.md).
 
 ## G7 — MCP and graph experience
 

@@ -11,7 +11,7 @@
 - [x] Node and relation types are explicit.
 - [x] Direct thread relationships retain evidence paths.
 - [x] Contradiction and supersession require more than similarity or recency.
-- [ ] Canonical subject normalization rules need representative fixtures.
+- [x] Canonical subject normalization rules have representative English, Korean, mixed-language, NFKC, spacing, casing, and accepted-alias fixtures.
 - [x] Artifact identity separates logical project paths from content revisions across worktrees.
 - [x] Stable ID and relation revision rules are defined.
 - [x] Candidate blocking prevents unbounded all-pairs inference.
@@ -33,7 +33,7 @@
 - [x] Results include recommended, ambiguous, no candidate, and incomplete.
 - [x] Recommendation and specialization do not grant authority.
 - [x] Persistent specialization requires explicit user acceptance.
-- [ ] Ranking calibration datasets and quality metrics require realistic thread fixtures.
+- [x] Ranking and abstention policies have a sanitized held-out fixture corpus, reproducible metrics, language slices, and frozen promotion thresholds.
 - [x] Provisional value formulas and promotion metrics are explicit.
 
 ## Persistence and recovery
