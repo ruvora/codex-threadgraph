@@ -31,6 +31,22 @@ test("G7 query and inspection read only the current revision", () => {
   assert.equal(reads, 2);
 });
 
+test("G7 derives a goal-relative candidate from the published graph", () => {
+  const selectable = {
+    ...revision,
+    scopeId,
+    nodes: [...revision.nodes, { id: "topic", kind: "topic", canonicalSubjectKey: "label:topic:database", lifecycle: "current" }],
+    relations: [{ relationKey: "ref", sourceId: "t", targetId: "topic", kind: "references", evidenceClass: "extracted", evidenceIds: ["e"] }],
+    observations: [{ id: "o", observedAt: "2026-09-04T00:00:00.000Z" }],
+  };
+  const service = new GraphService({ registry: registry(selectable) });
+  const report = service.query(scopeId, { objective: "Continue database design", requirements: [{ subject: "database", importance: "required", sourceSpan: "database" }] });
+  assert.equal(report.result, "recommended");
+  assert.equal(report.candidates[0].threadId, "t");
+  assert.equal(report.candidates[0].dimensions.goalRelevance, 1);
+  assert.equal(report.candidates[0].dimensions.evidenceCoverage, 0.85);
+});
+
 test("G7 navigation requires explicit action and sends no prompt", async () => {
   const calls = [];
   const service = new GraphService({ registry: registry(), navigator: { navigateToThread: async (value) => { calls.push(value); } } });

@@ -1,4 +1,5 @@
 import { buildGoalQuery, buildSelectionReport } from "./selection.mjs";
+import { deriveFreshness } from "./contracts/derivation.mjs";
 import { immutableClone } from "./domain/immutable.mjs";
 
 function fail(code, message) { const error = new Error(message); error.code = code; throw error; }
@@ -27,7 +28,7 @@ export class GraphService {
     const graph = this.getGraph(scopeId);
     if (graph.state !== "ready") return graph;
     const query = buildGoalQuery({ ...input, scopeId, graphRevisionId: graph.revision.id, observationCutoff: graph.revision.observationCutoff });
-    return buildSelectionReport(query, graph.revision.threadProfiles ?? []);
+    return buildSelectionReport(query, query.result === "incomplete" ? [] : deriveSelectionCandidates(graph.revision, query));
   }
 
   async navigate(scopeId, threadId, { explicitUserAction = false } = {}) {
@@ -40,6 +41,66 @@ export class GraphService {
     const result = await this.#navigator.navigateToThread({ threadId: node.nativeThreadId });
     return immutableClone({ navigated: true, nativeThreadId: node.nativeThreadId, promptSent: false, result: result ?? null });
   }
+}
+
+function normalizedSubject(node) {
+  return String(node.canonicalSubjectKey ?? "").normalize("NFKC").trim().toLowerCase().replace(/^label:[^:]+:/, "");
+}
+function weightedMean(values) {
+  const denominator = values.reduce((sum, item) => sum + item.weight, 0);
+  return denominator === 0 ? 0 : values.reduce((sum, item) => sum + item.value * item.weight, 0) / denominator;
+}
+function importance(value) { return value === "required" ? 3 : value === "preferred" ? 2 : 1; }
+
+export function deriveSelectionCandidates(revision, query) {
+  const nodes = new Map(revision.nodes.map((node) => [node.id, node]));
+  const evidence = new Map((revision.evidenceItems ?? []).map((item) => [item.id, item]));
+  const observations = new Map((revision.observations ?? []).map((item) => [item.id, item]));
+  const anchors = new Set(query.anchorThreadIds ?? []);
+  const lineage = revision.relations.filter((edge) => edge.kind === "forked_from");
+  return revision.nodes.filter((node) => node.kind === "thread" && node.nativeThreadId).map((thread) => {
+    const outgoing = revision.relations.filter((edge) => edge.sourceId === thread.id && ["references", "produced", "validated"].includes(edge.kind));
+    const requirementValues = query.requirements.map((requirement) => {
+      const matches = outgoing.filter((edge) => normalizedSubject(nodes.get(edge.targetId) ?? {}) === requirement.subject);
+      const match = matches.length > 0 ? 1 : 0;
+      const depth = matches.some((edge) => edge.evidenceClass === "observed") ? 1 : matches.some((edge) => edge.evidenceClass === "extracted") ? 0.85 : matches.length > 0 ? 0.5 : 0;
+      return { requirement, matches, match, depth, weight: importance(requirement.importance) };
+    });
+    const required = requirementValues.filter((item) => item.requirement.importance === "required");
+    const evidenceIds = [...new Set(requirementValues.flatMap((item) => item.matches.flatMap((edge) => edge.evidenceIds ?? [])))].sort();
+    const observedTimes = evidenceIds.map((id) => observations.get(evidence.get(id)?.observationId)?.observedAt).filter(Boolean).map(Date.parse);
+    const mostRecent = observedTimes.length > 0 ? Math.max(...observedTimes) : Date.parse(revision.observationCutoff);
+    const ageDays = Math.max(0, (Date.parse(query.observationCutoff) - mostRecent) / 86_400_000);
+    const freshness = deriveFreshness({ kind: "activity", ageDays }).value;
+    let continuity = "not_applicable";
+    if (anchors.size > 0) {
+      const direct = lineage.some((edge) => (edge.sourceId === thread.id && anchors.has(edge.targetId)) || (edge.targetId === thread.id && anchors.has(edge.sourceId)));
+      continuity = anchors.has(thread.id) || direct ? 1 : 0;
+    }
+    const conflict = revision.relations.some((edge) => edge.kind === "contradicts" && (edge.sourceId === thread.id || edge.targetId === thread.id));
+    const missingRequired = required.filter((item) => item.match === 0);
+    return {
+      threadId: thread.id,
+      nativeThreadId: thread.nativeThreadId,
+      projectId: revision.scopeId,
+      dimensions: {
+        goalRelevance: weightedMean(requirementValues.map((item) => ({ value: item.match, weight: item.weight }))),
+        evidenceCoverage: weightedMean(required.map((item) => ({ value: item.depth, weight: item.weight }))),
+        continuity,
+        activityFreshness: freshness,
+        specializationMatch: requirementValues.some((item) => item.match > 0 && item.matches.some((edge) => nodes.get(edge.targetId)?.kind === "topic")) ? 0.5 : 0,
+        conflictRisk: conflict ? 1 : 0,
+        missingRisk: required.length === 0 ? 0 : missingRequired.length / required.length,
+      },
+      evidenceIds,
+      conflicts: conflict ? ["unresolved_contradiction"] : [],
+      missingEvidence: missingRequired.map((item) => item.requirement.subject),
+      freshness: ageDays === 0 ? "current" : "aged",
+      blockingConflict: conflict,
+      navigationState: "available",
+      writerState: "unknown",
+    };
+  });
 }
 
 export function buildGraphViewModel(revision) {

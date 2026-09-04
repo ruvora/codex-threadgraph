@@ -7,6 +7,7 @@ import test from "node:test";
 import { fingerprint } from "../../src/domain/hashing.mjs";
 import { IndexingPipeline } from "../../src/indexing-pipeline.mjs";
 import { GraphRegistry } from "../../src/registry.mjs";
+import { GraphService } from "../../src/graph-service.mjs";
 
 function registryFixture() {
   const path = join(mkdtempSync(join(tmpdir(), "threadgraph-pipeline-")), "graph.db");
@@ -64,6 +65,9 @@ test("G9 prepare and publish connect scoped sources to one atomic Graph Revision
   assert.equal(result.graph.nodes.find((node) => node.kind === "thread").nativeThreadId.startsWith("native-"), true);
   assert.equal(result.graph.relations.some((edge) => edge.kind === "forked_from" && edge.evidenceClass === "observed"), true);
   assert.equal(result.graph.relations.some((edge) => edge.kind === "related_to" && edge.evidenceClass === "inferred"), true);
+  const selection = new GraphService({ registry }).query(prepared.scopeId, { objective: "Continue database work", requirements: [{ subject: "database", importance: "required", sourceSpan: "database" }] });
+  assert.equal(selection.result, "ambiguous");
+  assert.equal(selection.candidates.length, 2);
   assert.equal(host.calls.some(([name]) => name === "read"), true);
   registry.close();
 });
