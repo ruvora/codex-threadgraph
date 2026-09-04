@@ -119,7 +119,7 @@ Exit: a forged, stale, conflicted, or unsupported pack cannot influence executio
 
 ## G9 — End-to-end indexing session
 
-Status: core implementation complete. The durable two-stage session, native App Server adapter, deterministic G2–G6 composition, atomic publication, and local-only MCP tools are covered by failure-path and real-host forward tests. Installed-plugin E2E remains the next release gate.
+Status: installed-runtime implementation complete. The durable two-stage session, native App Server adapter, deterministic G2–G6 composition, atomic publication, and local-only MCP tools are covered by failure-path, real-host forward, and installed-cache E2E tests. Automatic tool discovery in a newly opened Codex task remains the final user-visible G9 release check.
 
 - durable prepare, publish, cancel, failure, and interruption states;
 - one frozen request and source fingerprint per session;
@@ -130,3 +130,5 @@ Status: core implementation complete. The durable two-stage session, native App 
 - MCP tools that expose no native thread execution authority.
 
 Exit: a successful initial open or explicit refresh produces one complete queryable Graph Revision, while every contract failure leaves the previous revision current.
+
+Evidence: [Installed plugin E2E: 0.1.0](./evidence/INSTALLED_PLUGIN_E2E_0.1.0.md).
