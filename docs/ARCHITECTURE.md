@@ -63,6 +63,8 @@ Scope Request
 
 Source ingestion and graph publication are separate from queries. A query reads one published revision and cannot trigger indexing or scope expansion. Navigation is separate from recommendation and starts no Turn.
 
+The durable boundary between ingestion and publication is the [Indexing session contract](./contracts/INDEXING_SESSION.md). Source Envelopes leave deterministic code only as untrusted semantic input; the resulting Extraction Envelopes cannot alter the frozen scope, source digest, policy, lease, or observation cutoff.
+
 ## Failure boundaries
 
 - Host access failure changes source availability, not native history.

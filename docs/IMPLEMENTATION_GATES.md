@@ -116,3 +116,15 @@ Status: producer-side Context Pack creation and validation implemented. An indep
 - independent failure and upgrade behavior.
 
 Exit: a forged, stale, conflicted, or unsupported pack cannot influence execution planning.
+
+## G9 — End-to-end indexing session
+
+- durable prepare, publish, cancel, failure, and interruption states;
+- one frozen request and source fingerprint per session;
+- current-Turn Extraction Envelope handoff;
+- publish-time scope, lease, expiry, and fingerprint revalidation;
+- deterministic G2–G6 pipeline composition;
+- atomic Graph Revision, job, session, pointer, and lease commit;
+- MCP tools that expose no native thread execution authority.
+
+Exit: a successful initial open or explicit refresh produces one complete queryable Graph Revision, while every contract failure leaves the previous revision current.
