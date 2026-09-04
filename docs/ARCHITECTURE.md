@@ -31,7 +31,20 @@ ThreadGraph must remain useful without ThreadHub. A later optional adapter may e
 
 ## First implementation boundary
 
-Version 0.1 indexes one canonical project only when its graph is opened without an existing revision or when the user explicitly refreshes it. All queries, inspection, and navigation read a published revision without updating it. It stores no background crawler and uses no external embedding provider. Persistence and interactive graph UI require separate contracts before implementation.
+Version 0.1 indexes one canonical project only when its graph is opened without an existing revision or when the user explicitly refreshes it. All queries, inspection, and navigation read a published revision without updating it. It stores no background crawler and uses no external embedding provider.
+
+The alpha implementation is split into independently testable modules:
+
+| Gate | Module | Responsibility |
+|---|---|---|
+| G1 | `src/domain-*`, `src/domain/` | immutable records, IDs, evidence closure, revisions |
+| G2 | `src/source-adapter.mjs` | scoped listing, bounded reads, trigger coalescing |
+| G3 | `src/registry.mjs` | SQLite publication, leases, recovery, migration |
+| G4 | `src/extraction.mjs` | claim materialization, exact edges, incremental invalidation |
+| G5 | `src/inference.mjs` | blocked candidates and deterministic confidence bands |
+| G6 | `src/selection.mjs` | Goal Queries, Selection Reports, specialization lifecycle |
+| G7 | `src/graph-service.mjs`, `server/`, `ui/` | read-only MCP boundary, navigation, graph semantics |
+| G8 | `src/context-pack.mjs` | provenance-only Context Pack export and validation |
 
 ## Canonical flow
 

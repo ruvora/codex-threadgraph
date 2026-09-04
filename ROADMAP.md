@@ -17,23 +17,24 @@
 ## 0.2 — Local persistent graph
 
 - [x] G1 immutable domain model, evidence closure, and revision fingerprints
-- Versioned SQLite schema
-- Incremental indexing and source invalidation
-- Deterministic exact-edge extraction
-- Bounded semantic inference with confidence calibration
-- Project and thread deletion controls
+- [x] Versioned SQLite schema, atomic publication, fencing, and recovery
+- [x] Incremental digest reuse and dependent invalidation planning
+- [x] Deterministic exact-edge extraction
+- [x] Bounded semantic inference implementation
+- [ ] Held-out inference and selection calibration
+- [ ] Fine-grained source retention and thread deletion UX
 
 ## 0.3 — Interactive graph
 
-- MCP server and graph query API
-- Embedded graph application
-- Evidence inspector and relation filters
-- Native Codex thread navigation
-- Large-graph performance and privacy verification
+- [x] Read-only MCP server and graph query API
+- [x] Accessible graph surface and evidence inspection model
+- [x] Explicit native Codex thread navigation boundary
+- [ ] Live embedded-app packaging and relation filters
+- [ ] Large-graph performance and privacy verification
 
 ## 0.4 — Optional ThreadHub adapter
 
-- Versioned Context Pack export
+- [x] Versioned Context Pack export and producer validation
 - Explicit user-selected handoff
-- ThreadHub-side validation and provenance import
+- [ ] ThreadHub-side validation and provenance import
 - No shared database and no implicit execution authority

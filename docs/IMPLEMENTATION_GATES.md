@@ -32,6 +32,8 @@ Exit: no current edge exists without a complete evidence path.
 
 ## G2 — Scoped source adapter
 
+Status: core implementation complete. Live installed-plugin compatibility remains part of the release E2E gate.
+
 - native thread list and bounded read adapter;
 - host and project identity normalization;
 - explicit scope and resource budgets;
@@ -43,6 +45,8 @@ Exit: an out-of-scope thread cannot be read even when referenced by indexed cont
 
 ## G3 — Persistent local Registry
 
+Status: core implementation complete for versioned SQLite publication, fencing, backup migration, reopen, and interrupted-job recovery. Fine-grained source retention/deletion UX remains a release task.
+
 - versioned SQLite schema;
 - atomic publication and current revision pointer;
 - single-writer lease and fencing;
@@ -52,6 +56,8 @@ Exit: an out-of-scope thread cannot be read even when referenced by indexed cont
 Exit: forced termination at every publication stage produces either the old or new complete revision, never a partial graph.
 
 ## G4 — Extraction and exact relationships
+
+Status: core implementation complete with deterministic claim materialization, ambiguity rejection, exact lineage validation, digest reuse, and dependent invalidation planning.
 
 - topic, decision, constraint, artifact, and result extraction;
 - modality, polarity, lifecycle, and speaker-role preservation;
@@ -64,6 +70,8 @@ Exit: unchanged ranges are not reprocessed and changed evidence invalidates only
 
 ## G5 — Bounded inference
 
+Status: alpha implementation complete. The gate remains open until the held-out calibration corpus meets the documented precision targets.
+
 - relation-specific candidate generation;
 - confidence calibration and thresholds;
 - deterministic confidence bands and relation-strength projection;
@@ -73,6 +81,8 @@ Exit: unchanged ranges are not reprocessed and changed evidence invalidates only
 Exit: topic overlap cannot produce contradiction or supersession without the required semantics.
 
 ## G6 — Selection and specialization
+
+Status: alpha implementation complete. The gate remains open until held-out recommendation and abstention calibration meets the documented targets.
 
 - eligibility gate and dimensioned ranking;
 - deterministic versioned selection score and outcome thresholds;
@@ -86,6 +96,8 @@ G5 and G6 also require the targets in [Quality and calibration](./contracts/QUAL
 
 ## G7 — MCP and graph experience
 
+Status: alpha read-only MCP server, native-navigation boundary, view model, and accessible graph surface implemented. Large-scope latency/memory measurements and live embedded-app packaging remain open.
+
 - read-only query API;
 - graph, evidence, candidate comparison, and empty states;
 - native navigation without prompt submission;
@@ -95,6 +107,8 @@ G5 and G6 also require the targets in [Quality and calibration](./contracts/QUAL
 Exit: exact, extracted, and inferred relations remain distinguishable without color alone.
 
 ## G8 — Optional ThreadHub adapter
+
+Status: producer-side Context Pack creation and validation implemented. An independent ThreadHub consumer compatibility run remains open.
 
 - versioned, fingerprinted Context Pack;
 - explicit selection and export;
