@@ -40,7 +40,7 @@ test("G7 navigation requires explicit action and sends no prompt", async () => {
   assert.equal(result.promptSent, false);
 });
 
-test("G7 MCP server advertises only read-only graph tools", async () => {
+test("G7 MCP server exposes only local graph tools and no native execution authority", async () => {
   const registryPath = join(mkdtempSync(join(tmpdir(), "threadgraph-mcp-")), "graph.db");
   const child = spawn(process.execPath, ["server/threadgraph-mcp.mjs"], { cwd: process.cwd(), env: { ...process.env, THREADGRAPH_REGISTRY_PATH: registryPath }, stdio: ["pipe", "pipe", "inherit"] });
   const lines = readline.createInterface({ input: child.stdout });
@@ -56,6 +56,6 @@ test("G7 MCP server advertises only read-only graph tools", async () => {
   });
   child.kill("SIGTERM");
   const names = responses.find((item) => item.id === 2).result.tools.map((item) => item.name);
-  assert.deepEqual(names, ["threadgraph_get_graph", "threadgraph_inspect_evidence", "threadgraph_select_thread"]);
+  assert.deepEqual(names, ["threadgraph_get_graph", "threadgraph_inspect_evidence", "threadgraph_select_thread", "threadgraph_prepare_index", "threadgraph_publish_index", "threadgraph_cancel_index"]);
   assert.equal(names.some((name) => /start|resume|send|execute/.test(name)), false);
 });

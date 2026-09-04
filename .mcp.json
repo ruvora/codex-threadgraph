@@ -5,7 +5,7 @@
       "args": ["./server/threadgraph-mcp.mjs"],
       "cwd": ".",
       "enabled": true,
-      "env_vars": ["CODEX_MCP_NODE_PATH", "CODEX_HOME", "THREADGRAPH_REGISTRY_PATH"],
+      "env_vars": ["CODEX_MCP_NODE_PATH", "CODEX_CLI_PATH", "CODEX_HOME", "THREADGRAPH_REGISTRY_PATH"],
       "startup_timeout_sec": 10,
       "tool_timeout_sec": 30
     }
