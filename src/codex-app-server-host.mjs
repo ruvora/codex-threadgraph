@@ -56,6 +56,15 @@ export class CodexAppServerHost {
     if (this.#child) return;
     this.#child = spawn(this.#codexPath, ["app-server", "--listen", "stdio://"], { cwd: this.#projectPath, env: process.env, stdio: ["pipe", "pipe", "pipe"] });
     this.#child.stderr.on("data", (chunk) => this.#stderr.push(chunk.toString()));
+    await new Promise((resolve, reject) => {
+      const onError = (error) => reject(Object.assign(new Error(`Unable to start the Codex App Server: ${error.message}`), { code: "HOST_START_FAILED", cause: error }));
+      this.#child.once("error", onError);
+      this.#child.once("spawn", () => { this.#child.off("error", onError); resolve(); });
+    }).catch((error) => { this.#child = null; throw error; });
+    this.#child.on("error", (error) => {
+      for (const pending of this.#pending.values()) pending.reject(Object.assign(new Error(`Codex App Server transport failed: ${error.message}`), { code: "HOST_DISCONNECTED", cause: error }));
+      this.#pending.clear();
+    });
     this.#lines = readline.createInterface({ input: this.#child.stdout });
     this.#lines.on("line", (line) => this.#onLine(line));
     this.#child.once("exit", () => {

@@ -34,7 +34,7 @@ function emptyExtraction(source) {
 }
 
 async function publishFixture(registry) {
-  const pipeline = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "/repo", workerId: "retention-indexer" });
+  const pipeline = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "saved-project", canonicalProjectPath: "/repo", workerId: "retention-indexer" });
   const prepared = await pipeline.prepare({ triggerKind: "initial_graph_open", requestOrigin: "retention_test", observationCutoff: "2026-09-04T01:00:00.000Z" });
   const published = await pipeline.publish({ sessionId: prepared.sessionId, extractions: prepared.sources.map(emptyExtraction) });
   return { prepared, published };
@@ -49,7 +49,7 @@ test("G10 terminal sessions scrub temporary source text", async () => {
   assert.equal(JSON.stringify(retained).includes("private-source-text"), false);
   assert.equal(registry.retentionSummary(prepared.scopeId).sessionsContainingTemporarySources, 0);
 
-  const refresh = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "/repo", workerId: "retention-cancel" });
+  const refresh = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "saved-project", canonicalProjectPath: "/repo", workerId: "retention-cancel" });
   const cancelled = await refresh.prepare({ triggerKind: "explicit_refresh", requestOrigin: "cancel_test", observationCutoff: "2026-09-04T02:00:00.000Z" });
   refresh.cancel(cancelled.sessionId);
   assert.equal(JSON.stringify(registry.getIndexSession(cancelled.sessionId)).includes("private-source-text"), false);
@@ -66,7 +66,7 @@ test("G10 terminal sessions scrub temporary source text", async () => {
 
 test("G10 recovery expires and scrubs abandoned prepared sessions", async () => {
   const { registry } = registryFixture();
-  const pipeline = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "/repo", workerId: "abandoned-indexer", sessionTtlMs: 1_000 });
+  const pipeline = new IndexingPipeline({ registry, host: hostFixture(), hostId: "local", canonicalProjectId: "saved-project", canonicalProjectPath: "/repo", workerId: "abandoned-indexer", sessionTtlMs: 1_000 });
   const prepared = await pipeline.prepare({ triggerKind: "initial_graph_open", requestOrigin: "abandoned_test", observationCutoff: "2026-09-04T01:00:00.000Z" });
   const recovered = registry.recover(Date.now() + 2_000);
   assert.equal(recovered.expiredPrepared, 1);

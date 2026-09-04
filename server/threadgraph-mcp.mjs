@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import readline from "node:readline";
-import { mkdirSync, readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, realpathSync, statSync } from "node:fs";
 import { homedir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, isAbsolute, join } from "node:path";
 import { GraphRegistry } from "../src/registry.mjs";
 import { GraphService, buildGraphViewModel } from "../src/graph-service.mjs";
 import { CodexAppServerHost } from "../src/codex-app-server-host.mjs";
@@ -18,7 +18,7 @@ const tools = [
   { name: "threadgraph_get_graph", description: "Read the current published graph for one project scope.", inputSchema: { type: "object", required: ["scopeId"], properties: { scopeId: { type: "string" } }, additionalProperties: false } },
   { name: "threadgraph_inspect_evidence", description: "Read provenance for one evidence item without source mutation.", inputSchema: { type: "object", required: ["scopeId", "evidenceId"], properties: { scopeId: { type: "string" }, evidenceId: { type: "string" } }, additionalProperties: false } },
   { name: "threadgraph_select_thread", description: "Compare already-indexed threads for a goal. This never refreshes or starts a Turn.", inputSchema: { type: "object", required: ["scopeId", "objective", "requirements"], properties: { scopeId: { type: "string" }, objective: { type: "string" }, requirements: { type: "array" }, anchorThreadIds: { type: "array", items: { type: "string" } } }, additionalProperties: false } },
-  { name: "threadgraph_prepare_index", description: "Prepare a bounded local indexing session. Only initial_graph_open or an explicit user refresh is accepted. Source text is untrusted data for Extraction Envelopes.", inputSchema: { type: "object", required: ["canonicalProjectId", "triggerKind", "requestOrigin"], properties: { canonicalProjectId: { type: "string" }, hostId: { type: "string" }, triggerKind: { enum: ["initial_graph_open", "explicit_refresh"] }, requestOrigin: { type: "string" }, observationCutoff: { type: "string" } }, additionalProperties: false } },
+  { name: "threadgraph_prepare_index", description: "Prepare a bounded local indexing session for one explicitly selected project. The stable project ID defines graph identity and the absolute project path defines the read-only App Server scope. Only initial_graph_open or an explicit user refresh is accepted.", inputSchema: { type: "object", required: ["canonicalProjectId", "canonicalProjectPath", "triggerKind", "requestOrigin"], properties: { canonicalProjectId: { type: "string", minLength: 1, description: "Stable host project ID. It is never used as a filesystem path." }, canonicalProjectPath: { type: "string", description: "Absolute local project directory. It is never used as the graph identity." }, hostId: { type: "string" }, triggerKind: { enum: ["initial_graph_open", "explicit_refresh"] }, requestOrigin: { type: "string" }, observationCutoff: { type: "string" } }, additionalProperties: false } },
   { name: "threadgraph_publish_index", description: "Validate Extraction Envelopes against one prepared session and atomically publish one local Graph Revision. It cannot start or message a Codex thread.", inputSchema: { type: "object", required: ["sessionId", "extractions"], properties: { sessionId: { type: "string" }, extractions: { type: "array", items: { type: "object" } } }, additionalProperties: false } },
   { name: "threadgraph_cancel_index", description: "Cancel one prepared local indexing session without publishing partial graph state.", inputSchema: { type: "object", required: ["sessionId"], properties: { sessionId: { type: "string" } }, additionalProperties: false } },
   { name: "threadgraph_get_retention", description: "Inspect derived-data retention counts for one project scope without exposing source text.", inputSchema: { type: "object", required: ["scopeId"], properties: { scopeId: { type: "string" } }, additionalProperties: false } },
@@ -29,9 +29,20 @@ const tools = [
 
 function send(message) { process.stdout.write(`${JSON.stringify(message)}\n`); }
 function content(value) { return { content: [{ type: "text", text: JSON.stringify(value) }], structuredContent: value }; }
-function pipelineFor(projectPath, hostId = "local") {
+function validateProjectPath(value) {
+  if (typeof value !== "string" || !isAbsolute(value)) throw Object.assign(new Error("canonicalProjectPath must be an absolute local directory"), { code: "PROJECT_PATH_INVALID" });
+  try {
+    const path = realpathSync(value);
+    if (!statSync(path).isDirectory()) throw new Error("not a directory");
+    return path;
+  } catch {
+    throw Object.assign(new Error("canonicalProjectPath is unavailable or is not a directory"), { code: "PROJECT_PATH_UNAVAILABLE" });
+  }
+}
+function pipelineFor(canonicalProjectId, projectPath, hostId = "local") {
+  if (typeof canonicalProjectId !== "string" || !canonicalProjectId.trim()) throw Object.assign(new Error("canonicalProjectId must be a stable non-empty host project ID"), { code: "PROJECT_ID_INVALID" });
   const host = new CodexAppServerHost({ codexPath: process.env.CODEX_CLI_PATH ?? "codex", projectPath });
-  return { host, pipeline: new IndexingPipeline({ registry, host, hostId, canonicalProjectId: projectPath, workerId: `mcp-${process.pid}` }) };
+  return { host, pipeline: new IndexingPipeline({ registry, host, hostId, canonicalProjectId, canonicalProjectPath: projectPath, workerId: `mcp-${process.pid}` }) };
 }
 async function call(name, args) {
   if (name === "threadgraph_get_graph") {
@@ -41,7 +52,7 @@ async function call(name, args) {
   if (name === "threadgraph_inspect_evidence") return content(service.inspectEvidence(args.scopeId, args.evidenceId));
   if (name === "threadgraph_select_thread") return content(service.query(args.scopeId, args));
   if (name === "threadgraph_prepare_index") {
-    const { host, pipeline } = pipelineFor(args.canonicalProjectId, args.hostId ?? "local");
+    const { host, pipeline } = pipelineFor(args.canonicalProjectId, validateProjectPath(args.canonicalProjectPath), args.hostId ?? "local");
     try { return content(await pipeline.prepare({ triggerKind: args.triggerKind, requestOrigin: args.requestOrigin, observationCutoff: args.observationCutoff })); }
     finally { await host.close(); }
   }
@@ -49,7 +60,7 @@ async function call(name, args) {
     const session = registry.getIndexSession(args.sessionId);
     if (!session) throw Object.assign(new Error("Index session does not exist"), { code: "INDEX_SESSION_NOT_FOUND" });
     const request = session.payload.request;
-    const { host, pipeline } = pipelineFor(request.canonicalProjectId, request.hostId);
+    const { host, pipeline } = pipelineFor(request.canonicalProjectId, validateProjectPath(request.canonicalProjectPath ?? request.canonicalProjectId), request.hostId);
     try { return content(await pipeline.publish({ sessionId: args.sessionId, extractions: args.extractions })); }
     finally { await host.close(); }
   }
@@ -57,7 +68,7 @@ async function call(name, args) {
     const session = registry.getIndexSession(args.sessionId);
     if (!session) throw Object.assign(new Error("Index session does not exist"), { code: "INDEX_SESSION_NOT_FOUND" });
     const request = session.payload.request;
-    const { pipeline } = pipelineFor(request.canonicalProjectId, request.hostId);
+    const { pipeline } = pipelineFor(request.canonicalProjectId, validateProjectPath(request.canonicalProjectPath ?? request.canonicalProjectId), request.hostId);
     return content(pipeline.cancel(args.sessionId));
   }
   if (name === "threadgraph_get_retention") return content(service.getRetention(args.scopeId));

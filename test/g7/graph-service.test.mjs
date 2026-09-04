@@ -75,10 +75,12 @@ test("G7 MCP server exposes only local graph tools and no native execution autho
   child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} })}\n`);
   child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 3, method: "resources/list", params: {} })}\n`);
   child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 4, method: "resources/read", params: { uri: "ui://threadgraph/graph.html" } })}\n`);
+  child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 5, method: "tools/call", params: { name: "threadgraph_prepare_index", arguments: { canonicalProjectId: "native-project-id", canonicalProjectPath: "native-project-id", triggerKind: "initial_graph_open", requestOrigin: "test" } } })}\n`);
+  child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 6, method: "tools/list", params: {} })}\n`);
   await new Promise((resolve, reject) => {
     const deadline = setTimeout(() => reject(new Error("MCP smoke test timed out")), 2000);
     const poll = setInterval(() => {
-      if (responses.length >= 4) { clearInterval(poll); clearTimeout(deadline); resolve(); }
+      if (responses.length >= 6) { clearInterval(poll); clearTimeout(deadline); resolve(); }
     }, 10);
   });
   child.kill("SIGTERM");
@@ -87,6 +89,11 @@ test("G7 MCP server exposes only local graph tools and no native execution autho
   assert.equal(names.some((name) => /start|resume|send|execute/.test(name)), false);
   const renderTool = responses.find((item) => item.id === 2).result.tools.find((item) => item.name === "threadgraph_render_graph");
   assert.equal(renderTool._meta.ui.resourceUri, "ui://threadgraph/graph.html");
+  const prepareTool = responses.find((item) => item.id === 2).result.tools.find((item) => item.name === "threadgraph_prepare_index");
+  assert.deepEqual(prepareTool.inputSchema.required, ["canonicalProjectId", "canonicalProjectPath", "triggerKind", "requestOrigin"]);
+  assert.equal(prepareTool.inputSchema.properties.canonicalProjectId.description.includes("filesystem path"), true);
+  assert.equal(responses.find((item) => item.id === 5).error.data.code, "PROJECT_PATH_INVALID");
+  assert.equal(responses.find((item) => item.id === 6).result.tools.length, 10);
   const resource = responses.find((item) => item.id === 4).result.contents[0];
   assert.equal(resource.mimeType, "text/html;profile=mcp-app");
   assert.match(resource.text, /ui\/notifications\/tool-result/);
