@@ -197,10 +197,36 @@ export function deriveSelectionCandidates(revision, query) {
   });
 }
 
-export function buildGraphViewModel(revision) {
+const viewRelationKinds = new Set(["belongs_to", "forked_from", "produced", "validated", "references", "related_to", "continues", "contradicts", "supersedes", "specializes_in"]);
+const viewEvidenceClasses = new Set(["observed", "extracted", "inferred"]);
+
+function normalizedFilter(values, allowed, code) {
+  if (values === undefined) return [];
+  if (!Array.isArray(values) || values.some((value) => !allowed.has(value))) fail(code, "Graph view filter is invalid");
+  return [...new Set(values)].sort();
+}
+
+function safeGraphLabel(value, fallback) {
+  const sanitized = String(value ?? fallback)
+    .replace(/\b(?:sk|ghp|github_pat)_[A-Za-z0-9_\-]{12,}\b/g, "[redacted token]")
+    .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, "[redacted email]")
+    .replace(/\s+/g, " ")
+    .trim();
+  return sanitized.slice(0, 160) || fallback;
+}
+
+export function buildGraphViewModel(revision, filters = {}) {
   if (!revision) return immutableClone({ state: "no_index", message: "No graph has been indexed.", nextAction: "open_project_graph", nodes: [], edges: [] });
-  const nodes = revision.nodes.map((node) => ({ id: node.id, kind: node.kind, label: node.label ?? node.canonicalSubjectKey, states: [node.lifecycle, ...(node.states ?? [])] }));
-  const edges = revision.relations.map((edge) => ({
+  const relationKinds = normalizedFilter(filters.relationKinds, viewRelationKinds, "RELATION_FILTER_INVALID");
+  const evidenceClasses = normalizedFilter(filters.evidenceClasses, viewEvidenceClasses, "EVIDENCE_FILTER_INVALID");
+  const availableFilters = {
+    relationKinds: Object.fromEntries([...viewRelationKinds].map((kind) => [kind, revision.relations.filter((edge) => edge.kind === kind).length]).filter(([, count]) => count > 0)),
+    evidenceClasses: Object.fromEntries([...viewEvidenceClasses].map((evidenceClass) => [evidenceClass, revision.relations.filter((edge) => edge.evidenceClass === evidenceClass).length]).filter(([, count]) => count > 0)),
+  };
+  const matching = revision.relations.filter((edge) => (relationKinds.length === 0 || relationKinds.includes(edge.kind)) && (evidenceClasses.length === 0 || evidenceClasses.includes(edge.evidenceClass)));
+  const visibleNodeIds = relationKinds.length > 0 || evidenceClasses.length > 0 ? new Set(matching.flatMap((edge) => [edge.sourceId, edge.targetId])) : null;
+  const nodes = revision.nodes.filter((node) => !visibleNodeIds || visibleNodeIds.has(node.id)).map((node) => ({ id: node.id, kind: node.kind, label: safeGraphLabel(node.label ?? node.canonicalSubjectKey, node.kind), states: [node.lifecycle, ...(node.states ?? [])] }));
+  const edges = matching.map((edge) => ({
     id: edge.relationKey,
     source: edge.sourceId,
     target: edge.targetId,
@@ -210,5 +236,5 @@ export function buildGraphViewModel(revision) {
     visual: edge.evidenceClass === "observed" ? "solid" : edge.evidenceClass === "extracted" ? "double" : "dashed",
     accessibleLabel: `${edge.kind}, ${edge.evidenceClass}${edge.confidenceBand ? `, ${edge.confidenceBand} confidence` : ""}`,
   }));
-  return immutableClone({ state: nodes.length === 0 ? "no_threads" : edges.length === 0 ? "no_relationships" : "ready", observationCutoff: revision.observationCutoff, nodes, edges });
+  return immutableClone({ state: nodes.length === 0 ? "no_threads" : edges.length === 0 ? "no_relationships" : "ready", observationCutoff: revision.observationCutoff, filters: { relationKinds, evidenceClasses }, availableFilters, nodes, edges });
 }

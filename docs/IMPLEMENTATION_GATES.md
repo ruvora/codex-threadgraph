@@ -100,7 +100,7 @@ Evidence: [Held-out calibration: corpus v1](./evidence/CALIBRATION_HELD_OUT_V1.m
 
 ## G7 — MCP and graph experience
 
-Status: alpha read-only MCP server, native-navigation boundary, view model, and accessible graph surface implemented. Large-scope latency/memory measurements and live embedded-app packaging remain open.
+Status: source-level gate complete. The MCP server exposes a decoupled render tool and portable MCP Apps resource, relation and evidence filters, an accessible bounded SVG/list surface, owner-only local storage files, and measured large-scope latency, memory, payload, and privacy budgets. Installed desktop rendering remains part of the final user-visible E2E.
 
 - read-only query API;
 - graph, evidence, candidate comparison, and empty states;
@@ -109,6 +109,8 @@ Status: alpha read-only MCP server, native-navigation boundary, view model, and 
 - large-scope latency and memory budgets.
 
 Exit: exact, extracted, and inferred relations remain distinguishable without color alone.
+
+Evidence: [MCP Apps and large-graph verification v1](./evidence/LARGE_GRAPH_MCP_APPS_V1.md).
 
 ## G8 — Optional ThreadHub adapter
 

@@ -32,8 +32,8 @@
 - [x] Read-only MCP server and graph query API
 - [x] Accessible graph surface and evidence inspection model
 - [x] Explicit native Codex thread navigation boundary
-- [ ] Live embedded-app packaging and relation filters
-- [ ] Large-graph performance and privacy verification
+- [x] MCP Apps resource packaging and relation/evidence filters
+- [x] Large-graph performance, bounded rendering, and privacy verification
 
 ## 0.4 — Optional ThreadHub adapter
 

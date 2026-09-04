@@ -50,3 +50,9 @@ Execution, archive, rename, role mutation, persistent specialization acceptance,
 The view distinguishes no threads in scope, no indexed evidence, no relationships, unreadable sources, indexing in progress, indexing failed, and a genuinely empty query result. Each state provides a read-only next action.
 
 Stale state shows the current observation cutoff and Refresh action. It must not imply that opening, searching, or querying has refreshed the graph.
+
+## MCP Apps packaging and display budgets
+
+The graph is a `text/html;profile=mcp-app` resource attached only to a dedicated render tool through `_meta.ui.resourceUri`. Data and mutation tools remain usable without the iframe. The component receives authoritative state from tool results and keeps relation filters as ephemeral UI state.
+
+The first display budget renders at most 80 nodes and 200 relations in the SVG map plus 250 nodes and 500 relations in accessible lists. It always reports displayed and matching counts. The server-side 5,000-node and 10,000-relation fixture must stay within the frozen budgets recorded in [MCP Apps and large-graph verification v1](../evidence/LARGE_GRAPH_MCP_APPS_V1.md).

@@ -60,3 +60,5 @@ An `alpha` policy becomes stable only when:
 5. before-and-after reports and known limitations are recorded.
 
 The initial deterministic policy promotion is recorded in [Held-out calibration: corpus v1](../evidence/CALIBRATION_HELD_OUT_V1.md). This promotion covers validated envelope and query-policy behavior. It does not promote unconstrained raw-language model interpretation, which remains a live E2E concern.
+
+The initial view-performance and privacy measurements are recorded in [MCP Apps and large-graph verification v1](../evidence/LARGE_GRAPH_MCP_APPS_V1.md).

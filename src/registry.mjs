@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync } from "node:fs";
+import { chmodSync, copyFileSync, existsSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { randomUUID } from "node:crypto";
 import { immutableClone } from "./domain/immutable.mjs";
@@ -27,6 +27,15 @@ function retainedSessionPayload(payload) {
   };
 }
 
+function secureRegistryFiles(path) {
+  for (const candidate of [path, `${path}-wal`, `${path}-shm`]) {
+    if (!existsSync(candidate)) continue;
+    try { chmodSync(candidate, 0o600); } catch (error) {
+      if (process.platform !== "win32") throw error;
+    }
+  }
+}
+
 export class GraphRegistry {
   #db;
   #path;
@@ -39,9 +48,14 @@ export class GraphRegistry {
     const version = this.#db.prepare("PRAGMA user_version").get().user_version;
     if (version > SCHEMA_VERSION) fail("REGISTRY_VERSION_UNSUPPORTED", `Registry version ${version} is newer than supported`);
     if (version < SCHEMA_VERSION) {
-      if (existed) copyFileSync(path, `${path}.v${version}.backup`);
+      if (existed) {
+        const backupPath = `${path}.v${version}.backup`;
+        copyFileSync(path, backupPath);
+        try { chmodSync(backupPath, 0o600); } catch (error) { if (process.platform !== "win32") throw error; }
+      }
       this.#migrate(version);
     }
+    secureRegistryFiles(path);
     const check = this.#db.prepare("PRAGMA integrity_check").get();
     if (check.integrity_check !== "ok") fail("REGISTRY_INTEGRITY_FAILED", check.integrity_check);
   }
@@ -424,7 +438,7 @@ export class GraphRegistry {
     return this.#db.prepare("DELETE FROM scopes WHERE scope_id=?").run(scopeId).changes === 1;
   }
 
-  close() { this.#db.close(); }
+  close() { secureRegistryFiles(this.#path); this.#db.close(); secureRegistryFiles(this.#path); }
 }
 
 export { SCHEMA_VERSION };

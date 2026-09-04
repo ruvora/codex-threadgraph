@@ -18,6 +18,7 @@ Map relationships between Codex threads within the user's requested scope.
 7. For a selection request, rank candidates against the stated goal and explain evidence, freshness, conflicts, missing context, and confidence.
 8. Navigate to a thread only when the user asks to open or select it and the host provides native navigation.
 9. For a retention request, inspect counts first. Preview indexed-thread deletion and show its impact before calling `threadgraph_delete_thread_index` with the exact current confirmation token and an explicit user action. Never describe this as deleting the native Codex thread.
+10. When the user asks to see the graph, call `threadgraph_get_graph` first, then `threadgraph_render_graph` for the same scope. Treat relation and evidence filters as presentation state; they do not authorize refresh or alter the Graph Revision.
 
 An indexing session is terminal after publication, cancellation, validation failure, or expiry. Do not reuse it or substitute a different source. If extraction cannot be completed, call `threadgraph_cancel_index`; never publish a partial semantic response. Do not include model-generated IDs, numeric confidence, execution instructions, or permissions in an Extraction Envelope.
 

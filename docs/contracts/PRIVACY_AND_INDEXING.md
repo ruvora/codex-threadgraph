@@ -26,6 +26,8 @@ Thread-scoped deletion requires a preview bound to the current Graph Revision, a
 
 Derived data records the redaction policy revision used to create it. Tightening redaction invalidates incompatible cached labels, summaries, and exports.
 
+Version 0.1 does not implement application-level database encryption. On POSIX hosts, Registry, WAL, SHM, and migration backup files are forced to owner-only permissions. Confidentiality at rest otherwise relies on the operating-system account boundary and volume encryption. A deployment that cannot provide those controls must treat local persistence as unsupported rather than silently weakening the policy.
+
 ## Export
 
 An exported Context Pack contains only selected claims and evidence references. It records source scope, generation time, schema version, and digest. Export does not authorize downstream execution.

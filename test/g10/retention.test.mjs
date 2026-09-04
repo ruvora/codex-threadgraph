@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
@@ -108,8 +108,15 @@ test("G10 thread deletion requires a current preview and publishes a purged revi
 
 test("G10 graph UI exposes preview-first deletion and states the native-history boundary", () => {
   const html = readFileSync(new URL("../../ui/graph.html", import.meta.url), "utf8");
-  assert.match(html, /threadgraph:preview-thread-deletion/);
+  assert.match(html, /threadgraph_preview_thread_deletion/);
+  assert.match(html, /ui\/notifications\/tool-result/);
   assert.match(html, /confirmationToken/);
   assert.match(html, /explicitUserAction:true/);
   assert.match(html, /native Codex thread and its history will not be changed/i);
+});
+
+test("G10 local registry files are owner-only on POSIX hosts", () => {
+  const { path, registry } = registryFixture();
+  registry.close();
+  if (process.platform !== "win32") assert.equal(statSync(path).mode & 0o777, 0o600);
 });

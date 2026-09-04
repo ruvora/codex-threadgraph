@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Codex ThreadGraph</title>
   <style>
-    body{font:16px/1.5 system-ui;margin:0;color:#182026;background:#f7f8fa}main{max-width:1100px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;gap:16px;align-items:center}.grid{display:grid;grid-template-columns:2fr 1fr;gap:18px}.panel{background:white;border:1px solid #d8dee4;border-radius:12px;padding:18px;margin-bottom:18px}.node{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #eaeef2;padding:10px 0}.node-actions{display:flex;gap:8px}.edge{border-left:4px solid #4353ff;padding:10px;margin:8px 0}.edge.extracted{border-left-style:double}.edge.inferred{border-left-style:dashed}.danger{color:#9b1c1c}.muted{color:#57606a}button{font:inherit;padding:8px 12px}dialog{max-width:520px;border:1px solid #d8dee4;border-radius:12px;padding:22px}dialog::backdrop{background:#0008}@media(max-width:760px){.grid{grid-template-columns:1fr}.node{align-items:flex-start;flex-direction:column}}
+    body{font:16px/1.5 system-ui;margin:0;color:#182026;background:#f7f8fa}main{max-width:1100px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;gap:16px;align-items:center}.grid{display:grid;grid-template-columns:2fr 1fr;gap:18px}.panel{background:white;border:1px solid #d8dee4;border-radius:12px;padding:18px;margin-bottom:18px}.node{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #eaeef2;padding:10px 0}.node-actions{display:flex;gap:8px}.edge{border-left:4px solid #4353ff;padding:10px;margin:8px 0}.edge.extracted{border-left-style:double}.edge.inferred{border-left-style:dashed}.danger{color:#9b1c1c}.muted{color:#57606a}button{font:inherit;padding:8px 12px}fieldset{border:0;padding:0;margin:8px 0}fieldset label{display:block}#graph-canvas{width:100%;height:auto;min-height:320px;background:#fbfcfe;border:1px solid #e5e9ef;border-radius:8px}.graph-edge{stroke:#7a8594;stroke-width:1.5}.graph-edge.extracted{stroke-width:3}.graph-edge.inferred{stroke-dasharray:5 4}.graph-node{fill:#fff;stroke:#4353ff;stroke-width:2}.graph-node.thread{fill:#eef0ff}dialog{max-width:520px;border:1px solid #d8dee4;border-radius:12px;padding:22px}dialog::backdrop{background:#0008}@media(max-width:760px){.grid{grid-template-columns:1fr}.node{align-items:flex-start;flex-direction:column}}
   </style>
 </head>
 <body>
@@ -15,9 +15,9 @@
       <button id="refresh" type="button">Refresh explicitly</button>
     </header>
     <div class="grid">
-      <section class="panel" aria-labelledby="nodes-title"><h2 id="nodes-title">Threads and context</h2><div id="nodes"></div></section>
+      <section class="panel" aria-labelledby="nodes-title"><h2 id="nodes-title">Threads and context</h2><svg id="graph-canvas" viewBox="0 0 800 520" role="img" aria-label="Filtered thread relationship map"></svg><p id="map-coverage" class="muted"></p><div id="nodes"></div></section>
       <div>
-        <aside class="panel" aria-labelledby="relations-title"><h2 id="relations-title">Relationships</h2><div id="edges"></div></aside>
+        <aside class="panel" aria-labelledby="relations-title"><h2 id="relations-title">Relationships</h2><div id="filters"></div><p id="coverage" class="muted"></p><div id="edges"></div></aside>
         <aside class="panel" aria-labelledby="retention-title"><h2 id="retention-title">Local data</h2><p id="retention" class="muted">Retention details are not loaded.</p></aside>
       </div>
     </div>
@@ -29,38 +29,54 @@
     <div class="node-actions"><button id="delete-confirm" type="button" class="danger">Remove indexed data</button><button id="delete-cancel" type="button">Cancel</button></div>
   </dialog>
   <script>
-    let deletionPreview=null;
-    const post=(type,payload={})=>parent.postMessage({type,...payload},"*");
+    let deletionPreview=null,currentView=null,nextRequestId=1;
+    const pendingRequests=new Map(),selectedKinds=new Set(),selectedEvidence=new Set();
+    const request=(method,params={})=>new Promise((resolve,reject)=>{const id=nextRequestId++;pendingRequests.set(id,{resolve,reject});parent.postMessage({jsonrpc:"2.0",id,method,params},"*")});
+    const callTool=(name,args)=>request("tools/call",{name,arguments:args});
+    const filteredEdges=model=>model.edges.filter(edge=>(selectedKinds.size===0||selectedKinds.has(edge.kind))&&(selectedEvidence.size===0||selectedEvidence.has(edge.evidenceClass)));
+    const svgElement=(name,attributes={})=>{const element=document.createElementNS("http://www.w3.org/2000/svg",name);for(const [key,value] of Object.entries(attributes))element.setAttribute(key,value);return element};
+    const renderMap=(modelNodes,modelEdges)=>{
+      const mapNodes=modelNodes.slice(0,80),ids=new Set(mapNodes.map(node=>node.id)),mapEdges=modelEdges.filter(edge=>ids.has(edge.source)&&ids.has(edge.target)).slice(0,200),positions=new Map();
+      mapNodes.forEach((node,index)=>{const angle=(index/Math.max(1,mapNodes.length))*Math.PI*2,ring=150+55*(index%3);positions.set(node.id,{x:400+Math.cos(angle)*ring,y:260+Math.sin(angle)*ring})});
+      const elements=[];
+      for(const edge of mapEdges){const a=positions.get(edge.source),b=positions.get(edge.target);elements.push(svgElement("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:`graph-edge ${edge.evidenceClass}`}))}
+      for(const node of mapNodes){const point=positions.get(node.id),group=svgElement("g"),circle=svgElement("circle",{cx:point.x,cy:point.y,r:node.kind==="thread"?8:5,class:`graph-node ${node.kind}`}),title=svgElement("title");title.textContent=`${node.kind}: ${node.label}`;group.append(circle,title);elements.push(group)}
+      document.getElementById("graph-canvas").replaceChildren(...elements);document.getElementById("map-coverage").textContent=`Map shows ${mapNodes.length} nodes and ${mapEdges.length} relationships; the accessible lists below preserve the remaining filtered results.`;
+    };
+    const renderFilters=model=>{
+      const groups=[["Relation",model.availableFilters?.relationKinds??{},selectedKinds],["Evidence",model.availableFilters?.evidenceClasses??{},selectedEvidence]];
+      filters.replaceChildren(...groups.map(([label,values,selected])=>{const fieldset=document.createElement("fieldset");const legend=document.createElement("legend");legend.textContent=label;fieldset.append(legend);for(const [value,count] of Object.entries(values)){const item=document.createElement("label");const input=document.createElement("input");input.type="checkbox";input.checked=selected.has(value);input.addEventListener("change",()=>{input.checked?selected.add(value):selected.delete(value);render(currentView)});item.append(input,` ${value} (${count})`);fieldset.append(item)}return fieldset}));
+    };
     const render=model=>{
+      currentView=model;renderFilters(model);
       state.textContent=model.state+(model.observationCutoff?` · observed ${model.observationCutoff}`:"");
-      nodes.replaceChildren(...model.nodes.map(node=>{
+      const matchingEdges=filteredEdges(model);const visibleIds=selectedKinds.size||selectedEvidence.size?new Set(matchingEdges.flatMap(edge=>[edge.source,edge.target])):null;
+      const matchingNodes=model.nodes.filter(node=>!visibleIds||visibleIds.has(node.id));const visibleNodes=matchingNodes.slice(0,250);const visibleEdges=matchingEdges.slice(0,500);
+      renderMap(matchingNodes,matchingEdges);
+      coverage.textContent=`Showing ${visibleNodes.length} of ${matchingNodes.length} nodes and ${visibleEdges.length} of ${matchingEdges.length} relationships.`;
+      nodes.replaceChildren(...visibleNodes.map(node=>{
         const row=document.createElement("div");row.className="node";
         const label=document.createElement("span");label.textContent=`${node.kind}: ${node.label}`;row.append(label);
         if(node.kind==="thread"){
           const actions=document.createElement("span");actions.className="node-actions";
-          const open=document.createElement("button");open.type="button";open.textContent="Open";open.addEventListener("click",()=>post("threadgraph:navigate",{threadId:node.id,explicitUserAction:true}));
-          const remove=document.createElement("button");remove.type="button";remove.textContent="Remove indexed data";remove.className="danger";remove.addEventListener("click",()=>post("threadgraph:preview-thread-deletion",{threadId:node.id}));
+          const open=document.createElement("button");open.type="button";open.textContent="Open";open.addEventListener("click",async()=>{await request("ui/update-model-context",{content:[{type:"text",text:`The user selected indexed thread ${node.id}.`}]});await request("ui/message",{role:"user",content:[{type:"text",text:"Open the selected native Codex thread without sending it a prompt."}]})});
+          const remove=document.createElement("button");remove.type="button";remove.textContent="Remove indexed data";remove.className="danger";remove.addEventListener("click",async()=>{const result=await callTool("threadgraph_preview_thread_deletion",{scopeId:window.threadgraphScopeId,threadId:node.id});showDeletionPreview(result.structuredContent)});
           actions.append(open,remove);row.append(actions);
         }
         return row;
       }));
-      edges.replaceChildren(...model.edges.map(edge=>{const item=document.createElement("div");item.className=`edge ${edge.evidenceClass}`;item.textContent=edge.accessibleLabel;item.tabIndex=0;return item}));
+      edges.replaceChildren(...visibleEdges.map(edge=>{const item=document.createElement("div");item.className=`edge ${edge.evidenceClass}`;item.textContent=edge.accessibleLabel;item.tabIndex=0;return item}));
     };
+    const showDeletionPreview=preview=>{deletionPreview=preview;const counts=preview.counts;document.getElementById("delete-impact").textContent=`This removes ${counts.removedNodes} nodes, ${counts.removedRelations} relationships, ${counts.removedEvidenceItems} evidence references, and ${counts.removedObservations} observations from the local index.`;document.getElementById("delete-dialog").showModal()};
     addEventListener("message",event=>{
-      if(event.data?.type==="threadgraph:view")render(event.data.model);
-      if(event.data?.type==="threadgraph:retention")retention.textContent=`${event.data.summary.currentThreadCount} indexed threads · ${event.data.summary.revisionCount} retained revisions · source text: temporary prepared sessions only`;
-      if(event.data?.type==="threadgraph:deletion-preview"){
-        deletionPreview=event.data.preview;
-        const counts=deletionPreview.counts;
-        document.getElementById("delete-impact").textContent=`This removes ${counts.removedNodes} nodes, ${counts.removedRelations} relationships, ${counts.removedEvidenceItems} evidence references, and ${counts.removedObservations} observations from the local index.`;
-        document.getElementById("delete-dialog").showModal();
-      }
-      if(event.data?.type==="threadgraph:thread-deleted"){document.getElementById("delete-dialog").close();deletionPreview=null}
-    });
-    refresh.addEventListener("click",()=>post("threadgraph:explicit-refresh",{explicitUserAction:true}));
+      if(event.source!==window.parent)return;const message=event.data;if(!message||message.jsonrpc!=="2.0")return;
+      if(message.id!==undefined&&pendingRequests.has(message.id)){const pending=pendingRequests.get(message.id);pendingRequests.delete(message.id);message.error?pending.reject(message.error):pending.resolve(message.result);return}
+      if(message.method==="ui/initialize"&&message.id!==undefined){parent.postMessage({jsonrpc:"2.0",id:message.id,result:{capabilities:{tools:{}}}},"*");return}
+      if(message.method==="ui/notifications/tool-result"){const output=message.params?.structuredContent;if(output?.view){window.threadgraphScopeId=output.scopeId;render(output.view);const summary=output.retention;retention.textContent=`${summary.currentThreadCount} indexed threads · ${summary.revisionCount} retained revisions · source text: temporary prepared sessions only`}}
+    },{passive:true});
+    refresh.addEventListener("click",()=>request("ui/message",{role:"user",content:[{type:"text",text:"Explicitly refresh this project ThreadGraph now."}]}));
     document.getElementById("delete-cancel").addEventListener("click",()=>{document.getElementById("delete-dialog").close();deletionPreview=null});
-    document.getElementById("delete-confirm").addEventListener("click",()=>{if(deletionPreview)post("threadgraph:delete-thread-index",{threadId:deletionPreview.threadId,confirmationToken:deletionPreview.confirmationToken,explicitUserAction:true})});
-    post("threadgraph:ready");
+    document.getElementById("delete-confirm").addEventListener("click",async()=>{if(!deletionPreview)return;await callTool("threadgraph_delete_thread_index",{scopeId:deletionPreview.scopeId,threadId:deletionPreview.threadId,confirmationToken:deletionPreview.confirmationToken,explicitUserAction:true});document.getElementById("delete-dialog").close();deletionPreview=null;const result=await callTool("threadgraph_render_graph",{scopeId:window.threadgraphScopeId});if(result?.structuredContent?.view)render(result.structuredContent.view)});
   </script>
 </body>
 </html>

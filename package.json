@@ -5,7 +5,7 @@
   "type": "module",
   "engines": { "node": ">=24.0.0" },
   "scripts": {
-    "test": "node --test test/g0/core-contract.test.mjs test/g0/fixture-corpus.test.mjs test/g1/domain-model.test.mjs test/g2/source-adapter.test.mjs test/g3/registry.test.mjs test/g4/extraction.test.mjs test/g5/inference.test.mjs test/g6/selection.test.mjs test/g7/graph-service.test.mjs test/g8/context-pack.test.mjs test/g9/indexing-pipeline.test.mjs test/g10/retention.test.mjs test/calibration/quality-gates.test.mjs",
+    "test": "node --test test/g0/core-contract.test.mjs test/g0/fixture-corpus.test.mjs test/g1/domain-model.test.mjs test/g2/source-adapter.test.mjs test/g3/registry.test.mjs test/g4/extraction.test.mjs test/g5/inference.test.mjs test/g6/selection.test.mjs test/g7/graph-service.test.mjs test/g8/context-pack.test.mjs test/g9/indexing-pipeline.test.mjs test/g10/retention.test.mjs test/g11/embedded-ui.test.mjs test/calibration/quality-gates.test.mjs",
     "test:fixtures": "node --test test/g0/fixture-corpus.test.mjs",
     "test:g0": "node --test test/g0/core-contract.test.mjs test/g0/fixture-corpus.test.mjs",
     "test:g1": "node --test test/g1/domain-model.test.mjs",
@@ -18,7 +18,9 @@
     "test:g8": "node --test test/g8/context-pack.test.mjs",
     "test:g9": "node --test test/g9/indexing-pipeline.test.mjs",
     "test:g10": "node --test test/g10/retention.test.mjs",
+    "test:g11": "node --test test/g11/embedded-ui.test.mjs",
     "test:calibration": "node --test test/calibration/quality-gates.test.mjs",
-    "calibrate": "node scripts/calibrate.mjs"
+    "calibrate": "node scripts/calibrate.mjs",
+    "benchmark:graph": "node --expose-gc scripts/benchmark-large-graph.mjs"
   }
 }

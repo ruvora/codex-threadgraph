@@ -25,7 +25,7 @@
 - [x] Indexing is bounded, incremental, and local by default.
 - [x] Unreadable, missing, and deleted are distinct.
 - [ ] Default numeric indexing budgets require measurement before acceptance.
-- [ ] Local encryption and operating-system protection expectations need a deployment decision.
+- [x] Version 0.1 explicitly relies on OS account and volume protection, enforces owner-only Registry files on POSIX, and does not claim application-level encryption.
 
 ## Selection and specialization
 
@@ -48,7 +48,7 @@
 - [x] Evidence inspection and failure states are first-class.
 - [x] Navigation sends no prompt.
 - [x] Context Pack excludes execution permissions.
-- [ ] Visual layout and performance budgets require a tested prototype.
+- [x] The MCP Apps SVG/list prototype has bounded rendering and measured 5,000-node/10,000-relation latency, memory, payload, and privacy budgets.
 - [x] Stable `thread/list` and `thread/read` behavior is verified against Codex 0.152.1 without loading or starting a thread.
 
 No unchecked item blocks the design baseline. Each unchecked item is deliberately assigned to an implementation gate and must be resolved before that gate exits.
