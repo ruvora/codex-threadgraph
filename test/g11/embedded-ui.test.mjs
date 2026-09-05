@@ -15,14 +15,17 @@ test("G11 large graph view meets latency, memory, payload, and privacy budgets",
 test("G11 embedded UI uses the MCP Apps bridge and bounded rendering", () => {
   const html = readFileSync(new URL("../../ui/graph.html", import.meta.url), "utf8");
   assert.match(html, /jsonrpc:"2\.0"/);
-  assert.match(html, /ui\/initialize/);
   assert.match(html, /ui\/notifications\/tool-result/);
+  assert.match(html, /window\.openai\?\.toolOutput/);
+  assert.match(html, /document\.getElementById\("filters"\)/);
   assert.match(html, /tools\/call/);
   assert.match(html, /slice\(0,250\)/);
   assert.match(html, /slice\(0,500\)/);
   assert.match(html, /id="graph-canvas"/);
   assert.match(html, /aria-label="Filtered thread relationship map"/);
   assert.match(html, /id="selection-details"/);
+  assert.match(html, /Browse all nodes and relationships/);
+  assert.match(html, /viewBox="0 0 720 320"/);
   assert.match(html, /Select a node or relationship/);
   assert.match(html, /project membership only/);
   assert.match(html, /does not mean the conversations are similar/);
