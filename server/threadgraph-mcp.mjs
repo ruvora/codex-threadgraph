@@ -89,10 +89,10 @@ lines.on("line", async (line) => {
   if (request.method === "initialize") return send({ jsonrpc: "2.0", id: request.id, result: { protocolVersion: "2025-06-18", capabilities: { tools: {}, resources: {} }, serverInfo: { name: "codex-threadgraph", version: "0.1.0" } } });
   if (request.method === "notifications/initialized") return;
   if (request.method === "tools/list") return send({ jsonrpc: "2.0", id: request.id, result: { tools } });
-  if (request.method === "resources/list") return send({ jsonrpc: "2.0", id: request.id, result: { resources: [{ uri: graphResourceUri, name: "Codex ThreadGraph", description: "Interactive evidence-backed thread graph", mimeType: "text/html;profile=mcp-app", _meta: { ui: { prefersBorder: false } } }] } });
+  if (request.method === "resources/list") return send({ jsonrpc: "2.0", id: request.id, result: { resources: [{ uri: graphResourceUri, name: "Codex ThreadGraph", description: "Interactive evidence-backed thread graph", mimeType: "text/html;profile=mcp-app", _meta: { ui: { prefersBorder: true } } }] } });
   if (request.method === "resources/read") {
     if (request.params?.uri !== graphResourceUri) return send({ jsonrpc: "2.0", id: request.id, error: { code: -32002, message: "Resource not found" } });
-    return send({ jsonrpc: "2.0", id: request.id, result: { contents: [{ uri: graphResourceUri, mimeType: "text/html;profile=mcp-app", text: graphHtml, _meta: { ui: { prefersBorder: false } } }] } });
+    return send({ jsonrpc: "2.0", id: request.id, result: { contents: [{ uri: graphResourceUri, mimeType: "text/html;profile=mcp-app", text: graphHtml, _meta: { ui: { prefersBorder: true } } }] } });
   }
   if (request.method === "tools/call") {
     try { return send({ jsonrpc: "2.0", id: request.id, result: await call(request.params.name, request.params.arguments ?? {}) }); }
