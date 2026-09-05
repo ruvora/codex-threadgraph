@@ -22,6 +22,11 @@ test("G11 embedded UI uses the MCP Apps bridge and bounded rendering", () => {
   assert.match(html, /slice\(0,500\)/);
   assert.match(html, /id="graph-canvas"/);
   assert.match(html, /aria-label="Filtered thread relationship map"/);
+  assert.match(html, /id="selection-details"/);
+  assert.match(html, /Select a node or relationship/);
+  assert.match(html, /project membership only/);
+  assert.match(html, /does not mean the conversations are similar/);
+  assert.match(html, /Technical details/);
   const script = html.match(/<script>([\s\S]*)<\/script>/)?.[1];
   assert.ok(script);
   assert.doesNotThrow(() => new Function(script));
