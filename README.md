@@ -14,7 +14,7 @@ ThreadGraph is a read-only knowledge and navigation layer.
 | **Codex ThreadHub** | Validate contracts, orchestrate work, recover execution, integrate artifacts, and decide completion |
 | **Codex Desktop** | Own native conversation history and the user-facing thread experience |
 
-ThreadGraph does not execute Tasks, mutate projects, archive threads, grant authority, or alter ThreadHub state.
+ThreadGraph does not execute Tasks, mutate source projects, archive threads, grant authority, or alter ThreadHub state. Indexing and retention operations write its own derived local registry.
 
 ## Graph model
 
@@ -45,6 +45,20 @@ The first release updates a project graph only on its first open or an explicit 
 
 The alpha runtime requires Node.js 24 or newer for the built-in SQLite Registry. The MCP server stores its local database under `$CODEX_HOME/threadgraph/graph.db` unless `THREADGRAPH_REGISTRY_PATH` is explicitly configured.
 
+## Run from source
+
+Install Node.js 24+ on PATH. No external npm runtime dependencies are required.
+
+```sh
+git clone https://github.com/ruvora/codex-threadgraph.git
+cd codex-threadgraph
+npm test
+# Start a stdio MCP server for a configured MCP client:
+node server/threadgraph-mcp.mjs
+```
+
+The stdio server waits for client protocol messages; it does not open a browser. Plugin metadata and the launcher are in `.codex-plugin/plugin.json` and `.mcp.json`. Set `CODEX_MCP_NODE_PATH` to an absolute Node executable if it is not on PATH. Native source access requires an authenticated Codex CLI; `CODEX_CLI_PATH` can select its executable. Index preparation requires both a stable `canonicalProjectId` and an absolute `canonicalProjectPath`. Supply an explicit authorized scope; cloning does not install or index anything.
+
 ## Design documents
 
 - [Product direction](./docs/PRODUCT_DIRECTION.md)
@@ -72,7 +86,7 @@ The alpha runtime requires Node.js 24 or newer for the built-in SQLite Registry.
 
 `0.1.0` alpha implementation with executable G0–G12 test coverage. It includes scoped native-source adaptation, durable prepare/extract/publish sessions, terminal source scrubbing, preview-confirmed local retention controls, immutable graph construction, a versioned SQLite Registry, calibrated deterministic inference and selection gates, a local-only MCP server, a portable MCP Apps graph with relation filters and bounded rendering, validated Context Pack export, and an independently tested ThreadHub consumer boundary.
 
-The implementation is not yet a stable release. The personal-marketplace package passes installed-cache MCP and real-scope indexing E2E; deterministic policy calibration, saturated indexing budgets, source-level MCP Apps performance and privacy gates, and independent ThreadHub consumer validation pass. New-task Codex desktop discovery and graph-open E2E remains the final release gate. The repository does not claim that check has passed.
+The implementation is not yet a stable release. The personal-marketplace package passes installed-cache MCP and real-scope indexing E2E; deterministic policy calibration, saturated indexing budgets, source-level MCP Apps performance and privacy gates, and independent ThreadHub consumer validation pass. The [desktop restart check](./docs/evidence/REBOOT_PROJECT_SCOPE_E2E.md) confirmed tool discovery and led to a corrected project ID/path contract, verified against the real host at source level. Installed-cache checks are revision-specific; final installed acceptance of the corrected build and graph-open E2E remain release gates. The repository does not claim those gates have passed.
 
 ## Author
 
