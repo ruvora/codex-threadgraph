@@ -4,6 +4,12 @@
 
 Codex threads accumulate decisions, constraints, experiments, artifacts, and execution history. ThreadGraph turns that scattered context into a local relationship graph without treating similarity as authority or starting work on the user's behalf.
 
+## Why ThreadGraph exists
+
+Returning to a project raises questions that thread titles and recency cannot answer: which decision still applies, where did a constraint come from, and which conversation is worth continuing? ThreadGraph makes those relationships inspectable. Its useful output is an explanation with a path back to the evidence.
+
+**Similarity is a lead, not authority.** Exact lineage, observed facts and inferred relationships remain distinct. Contradictions and superseded decisions stay visible instead of disappearing into a single summary. A recommendation is relative to a goal and the available evidence; the user or consuming execution system still decides what to do. Local storage, explicit indexing scope and bounded retention put the cost and privacy of this discovery process under deliberate control.
+
 ## Product boundary
 
 ThreadGraph is a read-only knowledge and navigation layer.
@@ -29,6 +35,22 @@ Project
 ```
 
 Thread-to-thread similarity is a derived view over evidence nodes. Every inferred relationship records its source, observation time, confidence, and explanation.
+
+## Technical architecture
+
+```text
+Explicit project scope -> bounded source observations -> evidence extraction
+  -> exact and inferred relations -> validated SQLite graph revision
+  -> goal-relative selection report -> evidence inspection / native navigation
+```
+
+Source ingestion and publication are separate from queries. Durable prepare/extract/publish sessions freeze scope and source fingerprints; validation checks that claims and relations retain their evidence before a revision becomes current. SQLite provides atomic publication and recovery, while immutable revisions give each query a consistent basis. Failed extraction leaves the previous published graph available.
+
+Inference uses bounded candidates and calibrated deterministic policy; semantic extraction input remains untrusted. Queries and the MCP Apps view read a published revision without starting a refresh. Context Packs carry versioned provenance across the optional Hub boundary, where the consumer validates them independently. The products keep separate databases and authority. See [architecture](./docs/ARCHITECTURE.md) and the [generation pipeline](./docs/GENERATION_PIPELINE.md).
+
+## Direction
+
+The direction is to improve the usefulness of evidence-backed selection and specialization while keeping indexing explicit, local and bounded. Persistent revisions, graph interaction and Context Pack contracts have alpha implementations; stable delivery still depends on the installed-host and graph-open acceptance described below. The [roadmap](./ROADMAP.md) separates these workstreams. Graph should remain independently useful for understanding threads even when no orchestration plugin is connected.
 
 ## Initial capability
 
